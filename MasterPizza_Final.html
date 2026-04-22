@@ -9,16 +9,13 @@
 <meta name="theme-color" content="#C8102E">
 <title>MasterPizza</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-
 <style>
-/* ══ VARIABLES ══ */
 :root{
   --R:#C8102E;--R2:#9B0B22;--OR:#FF6B35;
-  --G:#2D8A4E;--B:#1a73e8;--AM:#D97706;
+  --G:#2D8A4E;--B:#1a73e8;--AM:#D97706;--PU:#6a4c93;
+  --M-color:#f59e0b;--MD-color:#3b82f6;--T-color:#C8102E;
   --CR:#FFF8F0;--CR2:#FFE8CC;
   --GR:#6B7280;--GR2:#F3F4F6;--GR3:#E5E7EB;
   --TX:#1F2937;--WH:#fff;
@@ -30,49 +27,50 @@
 html,body{height:100%;overflow:hidden;background:var(--GR2)}
 body{font-family:'Nunito',sans-serif;color:var(--TX)}
 
-/* ══ TOPBAR ══ */
+/* TOPBAR */
 .topbar{background:linear-gradient(135deg,var(--R2),var(--R));color:white;padding:10px 16px;
   padding-top:calc(10px + var(--ST));display:flex;align-items:center;justify-content:space-between;
   box-shadow:0 3px 16px rgba(155,11,34,.4);position:fixed;top:0;left:0;right:0;z-index:100;
   height:calc(var(--TOP) + var(--ST));gap:8px}
-.tb-left{display:flex;align-items:center;gap:9px;min-width:0}
+.tb-left{display:flex;align-items:center;gap:9px}
 .tb-pizza{font-size:1.6rem;animation:rotar 20s linear infinite;flex-shrink:0}
 @keyframes rotar{to{transform:rotate(360deg)}}
 .tb-title{font-size:1.05rem;font-weight:900}
 .tb-sub{font-size:.6rem;opacity:.8;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
 .tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0;transition:background .3s}
-.sync-dot.off{background:#ef4444}.sync-dot.sync{background:#facc15;animation:pulse .8s infinite}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;transition:background .3s}
+.sync-dot.off{background:#ef4444}.sync-dot.syncing{background:#facc15;animation:pulse .8s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.tb-user{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 10px;cursor:pointer}
+.tb-user{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);
+  border-radius:20px;padding:4px 10px;cursor:pointer}
 .tb-user span{font-size:.75rem;font-weight:800}
 
-/* ══ SCROLL MAIN ══ */
+/* MAIN SCROLL */
 .main{position:fixed;top:calc(var(--TOP) + var(--ST));left:0;right:0;
   bottom:calc(var(--NAV) + var(--SB));overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;padding:14px 14px 20px}
 
-/* ══ BOTTOM NAV ══ */
+/* BOTTOM NAV */
 .bnav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--NAV) + var(--SB));
   background:white;border-top:1.5px solid var(--GR3);display:flex;align-items:flex-start;
   padding-top:6px;padding-bottom:var(--SB);box-shadow:0 -4px 20px rgba(0,0,0,.09);z-index:100}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;
-  background:none;cursor:pointer;padding:5px 4px;border-radius:10px;transition:all .15s}
+  background:none;cursor:pointer;padding:5px 4px;border-radius:10px}
 .bnav-btn:active{background:var(--GR2)}
 .bnav-ico{font-size:1.3rem;line-height:1}
-.bnav-txt{font-family:'Nunito',sans-serif;font-size:.58rem;font-weight:700;color:var(--GR);
+.bnav-txt{font-family:'Nunito',sans-serif;font-size:.56rem;font-weight:700;color:var(--GR);
   letter-spacing:.3px;text-transform:uppercase}
 .bnav-btn.on .bnav-txt{color:var(--R)}
 .bnav-btn.on .bnav-ico{transform:translateY(-1px)}
 
-/* ══ VISTAS ══ */
+/* VISTAS */
 .vista{display:none}.vista.on{display:block}
 
-/* ══ CARDS ══ */
+/* CARDS */
 .card{background:white;border-radius:18px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:12px}
 .card-title{font-size:.9rem;font-weight:900;color:var(--R);margin-bottom:12px;display:flex;align-items:center;gap:7px}
 
-/* ══ FECHA NAV ══ */
+/* FECHA NAV */
 .fecha-nav{background:white;border-radius:16px;padding:11px 14px;margin-bottom:12px;
   display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.07)}
 .fn-centro{text-align:center}
@@ -83,102 +81,155 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
   justify-content:center;cursor:pointer;flex-shrink:0}
 .btn-nav:active{background:var(--CR2);transform:scale(.92)}
 
-/* ══ PRESENTISMO ══ */
-.pres-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.pres-chip{background:var(--GR2);border:2px solid var(--GR3);border-radius:14px;padding:11px 10px;
-  display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .2s;user-select:none}
-.pres-chip.presente{background:#F0FDF4;border-color:#86EFAC}
-.pres-chip.ausente{background:#FFF1F2;border-color:#FCA5A5;opacity:.75}
-.pres-chip.readonly{cursor:default}
-.pres-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:.9rem;font-weight:900;color:white;flex-shrink:0}
-.pres-nom{font-size:.8rem;font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pres-rol{font-size:.58rem;color:var(--GR);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-.pres-ico{font-size:.95rem;flex-shrink:0}
-.att-sum{display:flex;align-items:center;justify-content:space-between;background:var(--GR2);
-  border-radius:10px;padding:8px 12px;margin-top:10px}
-.att-sum span{font-size:.76rem;font-weight:700;color:var(--GR)}
+/* TURNO TABS */
+.turno-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.turno-tab{border:2px solid var(--GR3);background:white;border-radius:14px;padding:11px 6px;
+  text-align:center;cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif}
+.turno-tab:active{transform:scale(.97)}
+.turno-tab .tt-ico{font-size:1.4rem;display:block;margin-bottom:3px}
+.turno-tab .tt-nom{font-size:.78rem;font-weight:800;color:var(--GR)}
+.turno-tab .tt-enc{font-size:.62rem;color:#9CA3AF;font-weight:600}
+.turno-tab .tt-tot{font-size:.82rem;font-weight:900;color:var(--GR);margin-top:3px}
+.turno-tab.on-M{border-color:var(--M-color);background:#FFFBEB}
+.turno-tab.on-M .tt-nom{color:var(--M-color)}
+.turno-tab.on-M .tt-tot{color:var(--M-color)}
+.turno-tab.on-MD{border-color:var(--MD-color);background:#EFF6FF}
+.turno-tab.on-MD .tt-nom{color:var(--MD-color)}
+.turno-tab.on-MD .tt-tot{color:var(--MD-color)}
+.turno-tab.on-T{border-color:var(--T-color);background:#FFF1F2}
+.turno-tab.on-T .tt-nom{color:var(--T-color)}
+.turno-tab.on-T .tt-tot{color:var(--T-color)}
+.turno-tab.activo{box-shadow:0 4px 14px rgba(0,0,0,.12);transform:translateY(-2px)}
 
-/* ══ PRODUCCION ══ */
+/* TURNO HEADER */
+.turno-header{border-radius:14px;padding:12px 14px;margin-bottom:12px;
+  display:flex;align-items:center;gap:10px}
+.turno-header.M{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+.turno-header.MD{background:linear-gradient(135deg,#3b82f6,#60a5fa)}
+.turno-header.T{background:linear-gradient(135deg,var(--R2),var(--R))}
+.th-ico{font-size:1.8rem}
+.th-txt .th-nom{font-size:1rem;font-weight:900;color:white}
+.th-txt .th-enc{font-size:.72rem;color:rgba(255,255,255,.85);font-weight:700}
+
+/* ASISTENCIA */
+.asist-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.asist-chip{background:var(--GR2);border:2px solid var(--GR3);border-radius:13px;
+  padding:10px 10px;display:flex;align-items:center;gap:8px;cursor:pointer;
+  transition:all .2s;user-select:none}
+.asist-chip.presente{background:#F0FDF4;border-color:#86EFAC}
+.asist-chip.ausente{background:#F9FAFB;border-color:var(--GR3);opacity:.6}
+.asist-chip.fijo{cursor:default}
+.asist-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.88rem;font-weight:900;color:white;flex-shrink:0}
+.asist-nom{font-size:.78rem;font-weight:800;flex:1}
+.asist-rol{font-size:.58rem;color:var(--GR);font-weight:600}
+.asist-ico{font-size:.9rem;flex-shrink:0}
+
+/* PRODUCCION */
 .prod-list{display:flex;flex-direction:column;gap:9px}
-.prod-item{background:white;border-radius:16px;padding:12px 14px;box-shadow:0 2px 10px rgba(0,0,0,.06);
-  display:flex;align-items:center;gap:12px;transition:opacity .2s}
-.prod-item.ausente-hoy{opacity:.4;pointer-events:none}
-.prod-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:1.1rem;font-weight:900;color:white;flex-shrink:0;
+.prod-item{background:white;border-radius:15px;padding:11px 13px;
+  box-shadow:0 2px 10px rgba(0,0,0,.06);display:flex;align-items:center;gap:11px}
+.prod-item.aus{opacity:.35;pointer-events:none}
+.prod-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:1.05rem;font-weight:900;color:white;flex-shrink:0;
   box-shadow:0 3px 10px rgba(0,0,0,.18)}
 .prod-info{flex:1;min-width:0}
-.prod-nom{font-size:.95rem;font-weight:800}
-.prod-sub{font-size:.68rem;color:var(--GR);font-weight:600;margin-top:1px}
-.stepper{display:flex;align-items:center;background:var(--GR2);border-radius:12px;overflow:hidden;flex-shrink:0}
-.step-btn{background:none;border:none;width:36px;height:44px;font-size:1.25rem;font-weight:900;
+.prod-nom{font-size:.93rem;font-weight:800}
+.prod-sub{font-size:.67rem;color:var(--GR);font-weight:600;margin-top:1px}
+.stepper{display:flex;align-items:center;background:var(--GR2);border-radius:11px;overflow:hidden;flex-shrink:0}
+.step-btn{background:none;border:none;width:36px;height:42px;font-size:1.2rem;font-weight:900;
   color:var(--R);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .step-btn:active{background:var(--CR2)}
-.step-val{width:44px;text-align:center;border:none;background:transparent;font-family:'Nunito',sans-serif;
-  font-size:1.1rem;font-weight:900;color:var(--TX);padding:0;-moz-appearance:textfield}
+.step-val{width:42px;text-align:center;border:none;background:transparent;
+  font-family:'Nunito',sans-serif;font-size:1.05rem;font-weight:900;color:var(--TX);
+  padding:0;-moz-appearance:textfield}
 .step-val::-webkit-inner-spin-button{-webkit-appearance:none}
 
-/* ══ PEDIDOS ══ */
-.pedido-form{display:flex;flex-direction:column;gap:9px;margin-bottom:12px}
+/* RESUMEN DÍA */
+.dia-resumen{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.dr-card{background:white;border-radius:14px;padding:12px 10px;text-align:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.07);border-top:3px solid var(--GR3)}
+.dr-card.M{border-top-color:var(--M-color)}
+.dr-card.MD{border-top-color:var(--MD-color)}
+.dr-card.T{border-top-color:var(--T-color)}
+.dr-ico{font-size:1.2rem;margin-bottom:4px}
+.dr-nom{font-size:.65rem;font-weight:800;color:var(--GR);text-transform:uppercase;letter-spacing:.5px}
+.dr-num{font-size:1.6rem;font-weight:900;color:var(--TX);line-height:1}
+.dr-lab{font-size:.6rem;color:var(--GR);font-weight:600}
+
+/* PILL TOTAL */
+.pill-total{background:linear-gradient(135deg,var(--R),var(--OR));color:white;
+  border-radius:16px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 16px rgba(200,16,46,.3);margin-bottom:12px}
+.pt-l .pt-lab{font-size:.66rem;font-weight:700;opacity:.9;letter-spacing:.8px;text-transform:uppercase}
+.pt-l .pt-num{font-size:2rem;font-weight:900;line-height:1}
+.pt-r{text-align:right;font-size:.76rem;font-weight:700;opacity:.88;line-height:1.5}
+
+/* PEDIDOS */
+.tipo-row{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+.tipo-chip{background:var(--GR2);border:2px solid var(--GR3);border-radius:20px;
+  padding:6px 12px;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800;
+  color:var(--GR);cursor:pointer;transition:all .18s;flex-shrink:0}
+.tipo-chip.on{color:white;border-color:transparent}
+.tipo-chip.on.L{background:#6a4c93}
+.tipo-chip.on.F{background:#0d6efd}
+.tipo-chip.on.A{background:#2D8A4E}
+.pedido-form{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
 .inp{width:100%;border:2px solid var(--GR3);border-radius:12px;padding:10px 13px;
   font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;color:var(--TX);
   background:var(--GR2);outline:none;transition:border .2s}
 .inp:focus{border-color:var(--OR);background:white}
 .inp-row{display:flex;gap:8px}.inp-row .inp{flex:1}
-.pedido-list{display:flex;flex-direction:column;gap:8px}
-.pedido-item{background:white;border-radius:14px;padding:11px 13px;
-  box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:9px}
+.pedido-list{display:flex;flex-direction:column;gap:7px}
+.pedido-item{background:white;border-radius:13px;padding:10px 12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:8px}
+.ped-tipo{width:8px;height:36px;border-radius:4px;flex-shrink:0}
+.ped-tipo.L{background:#6a4c93}.ped-tipo.F{background:#0d6efd}.ped-tipo.A{background:#2D8A4E}
 .ped-info{flex:1;min-width:0}
-.ped-cliente{font-size:.88rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ped-det{font-size:.72rem;color:var(--GR);font-weight:600;margin-top:1px}
-.ped-cant{background:linear-gradient(135deg,var(--R),var(--OR));color:white;border-radius:9px;
-  padding:4px 10px;font-size:.82rem;font-weight:900;flex-shrink:0}
-.btn-del{background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;border-radius:8px;color:#EF4444}
+.ped-cliente{font-size:.86rem;font-weight:800}
+.ped-det{font-size:.7rem;color:var(--GR);font-weight:600;margin-top:1px}
+.ped-cant{background:linear-gradient(135deg,var(--R),var(--OR));color:white;
+  border-radius:9px;padding:4px 10px;font-size:.82rem;font-weight:900;flex-shrink:0}
+.btn-del{background:none;border:none;font-size:.95rem;cursor:pointer;padding:4px;
+  border-radius:8px;color:#EF4444}
 .btn-del:active{background:#FEE2E2}
 
-/* ══ STATS ══ */
+/* STATS */
 .stats-g{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
-.sc{background:white;border-radius:16px;padding:14px 12px;text-align:center;
+.sc{background:white;border-radius:15px;padding:13px 11px;text-align:center;
   box-shadow:0 2px 10px rgba(0,0,0,.07)}
-.sc-av{width:38px;height:38px;border-radius:50%;margin:0 auto 7px;display:flex;
-  align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:white}
-.sc-nom{font-size:.82rem;font-weight:800;margin-bottom:1px}
-.sc-num{font-size:1.7rem;font-weight:900;color:var(--R);line-height:1}
-.sc-lab{font-size:.6rem;color:var(--GR);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-top:1px}
+.sc-av{width:36px;height:36px;border-radius:50%;margin:0 auto 6px;display:flex;
+  align-items:center;justify-content:center;font-size:.95rem;font-weight:900;color:white}
+.sc-nom{font-size:.8rem;font-weight:800;margin-bottom:1px}
+.sc-num{font-size:1.6rem;font-weight:900;color:var(--R);line-height:1}
+.sc-lab{font-size:.6rem;color:var(--GR);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
 .bw{background:var(--CR2);border-radius:20px;height:5px;margin-top:6px;overflow:hidden}
 .bf{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--R),var(--OR));
   transition:width .6s cubic-bezier(.34,1.56,.64,1)}
 
-/* PILL */
-.pill{background:linear-gradient(135deg,var(--R),var(--OR));color:white;border-radius:16px;
-  padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 4px 16px rgba(200,16,46,.3);margin-bottom:12px}
-.pill-l .pill-lab{font-size:.66rem;font-weight:700;opacity:.9;letter-spacing:.8px;text-transform:uppercase}
-.pill-l .pill-num{font-size:2rem;font-weight:900;line-height:1}
-.pill-r{text-align:right;font-size:.76rem;font-weight:700;opacity:.88;line-height:1.4}
-
 /* TABLA */
-.tabla-wrap{background:white;border-radius:16px;overflow:hidden;
-  box-shadow:0 2px 10px rgba(0,0,0,.07);overflow-x:auto}
-.tbl{width:100%;border-collapse:collapse;font-size:.74rem;min-width:300px}
-.tbl thead th{background:var(--R);color:white;padding:9px 8px;font-weight:800;
-  text-align:center;font-size:.66rem}
-.tbl thead th:first-child{text-align:left;padding-left:12px}
-.tbl tbody td{padding:7px 8px;border-bottom:1px solid var(--GR2);text-align:center}
-.tbl tbody td:first-child{text-align:left;padding-left:12px;font-weight:700}
+.tabla-wrap{background:white;border-radius:15px;overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,.07);overflow-x:auto;margin-bottom:12px}
+.tbl{width:100%;border-collapse:collapse;font-size:.72rem;min-width:280px}
+.tbl thead th{background:var(--R);color:white;padding:8px 7px;font-weight:800;
+  text-align:center;font-size:.64rem}
+.tbl thead th:first-child{text-align:left;padding-left:11px}
+.tbl tbody td{padding:7px 7px;border-bottom:1px solid var(--GR2);text-align:center}
+.tbl tbody td:first-child{text-align:left;padding-left:11px;font-weight:700}
 .tbl .ftot td{background:var(--CR2);font-weight:800;color:var(--R)}
+.tbl .th-M{background:#f59e0b!important}.tbl .th-MD{background:#3b82f6!important}.tbl .th-T{background:var(--R)!important}
 .vd{color:var(--G);font-weight:700}.gr{color:#D1D5DB}
 
-/* MES */
-.mes-row{background:white;border-radius:14px;padding:11px 14px;margin-bottom:12px;
-  display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.mes-row label{font-size:.78rem;font-weight:700;color:var(--GR);flex-shrink:0}
-.mes-row select{flex:1;border:1.5px solid var(--GR3);border-radius:8px;padding:5px 9px;
-  font-family:'Nunito',sans-serif;font-weight:700;font-size:.82rem;color:var(--TX);background:var(--GR2)}
-.mes-row select:focus{outline:none;border-color:var(--R)}
+/* MES SEL */
+.mes-row{background:white;border-radius:13px;padding:10px 13px;margin-bottom:11px;
+  display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.06);flex-wrap:wrap}
+.mes-row label{font-size:.76rem;font-weight:700;color:var(--GR);flex-shrink:0}
+.mes-row select{flex:1;min-width:80px;border:1.5px solid var(--GR3);border-radius:8px;
+  padding:5px 8px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.8rem;
+  color:var(--TX);background:var(--GR2)}
 
 /* BTNS */
-.btn{border:none;border-radius:14px;padding:13px 18px;font-family:'Nunito',sans-serif;
+.btn{border:none;border-radius:13px;padding:13px 18px;font-family:'Nunito',sans-serif;
   font-size:.9rem;font-weight:800;cursor:pointer;display:flex;align-items:center;
   justify-content:center;gap:7px;transition:all .18s;width:100%;letter-spacing:.2px;margin-bottom:9px}
 .btn:active{transform:scale(.97)}
@@ -193,136 +244,109 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
 /* FAB */
 .fab{position:fixed;bottom:calc(var(--NAV)+14px+var(--SB));right:16px;
   background:linear-gradient(135deg,var(--G),#3aad65);color:white;border:none;
-  border-radius:18px;padding:13px 20px;font-family:'Nunito',sans-serif;font-size:.95rem;
+  border-radius:17px;padding:12px 18px;font-family:'Nunito',sans-serif;font-size:.92rem;
   font-weight:900;display:flex;align-items:center;gap:7px;
-  box-shadow:0 6px 20px rgba(45,138,78,.45);cursor:pointer;z-index:80;transition:all .2s}
+  box-shadow:0 6px 20px rgba(45,138,78,.45);cursor:pointer;z-index:80}
 .fab:active{transform:scale(.95)}
 
 /* TOAST */
 .toast{position:fixed;bottom:calc(var(--NAV)+12px+var(--SB));left:12px;right:12px;
-  background:#1F2937;color:white;padding:12px 18px;border-radius:14px;font-weight:700;
-  font-size:.86rem;box-shadow:0 8px 28px rgba(0,0,0,.25);z-index:999;
+  background:#1F2937;color:white;padding:12px 18px;border-radius:13px;font-weight:700;
+  font-size:.85rem;box-shadow:0 8px 28px rgba(0,0,0,.25);z-index:999;
   transform:translateY(20px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);text-align:center}
 .toast.on{transform:translateY(0);opacity:1}
 .toast.ok{background:var(--G)}.toast.err{background:var(--R)}.toast.warn{background:var(--AM)}
 
-/* ══ LOGIN ══ */
+/* LOGIN */
 .login-screen{position:fixed;inset:0;background:linear-gradient(160deg,var(--R2),var(--R) 55%,var(--OR));
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
   padding:20px;z-index:200;overflow-y:auto}
-.login-logo{font-size:3.5rem;margin-bottom:6px;animation:bounce 2s ease-in-out infinite}
+.login-screen.on{display:flex}
+.login-logo{font-size:3.2rem;margin-bottom:6px;animation:bounce 2s ease-in-out infinite}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.login-title{font-size:1.9rem;font-weight:900;color:white;margin-bottom:3px;text-shadow:0 2px 8px rgba(0,0,0,.2)}
-.login-sub{font-size:.72rem;color:rgba(255,255,255,.8);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}
+.login-title{font-size:1.8rem;font-weight:900;color:white;margin-bottom:3px}
+.login-sub{font-size:.7rem;color:rgba(255,255,255,.8);font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:22px}
 .login-lbl{color:rgba(255,255,255,.9);font-size:.8rem;font-weight:700;margin-bottom:10px;text-align:center}
-.login-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:340px;margin-bottom:16px}
+.login-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:340px;margin-bottom:14px}
 .login-btn{background:rgba(255,255,255,.13);border:2px solid rgba(255,255,255,.25);
-  border-radius:16px;padding:13px 8px;display:flex;flex-direction:column;
+  border-radius:15px;padding:12px 8px;display:flex;flex-direction:column;
   align-items:center;gap:5px;cursor:pointer;transition:all .2s}
 .login-btn:active{transform:scale(.95)}
 .login-btn.sel{background:rgba(255,255,255,.9);border-color:white}
 .login-btn.sel .lb-nom{color:var(--R)}.login-btn.sel .lb-rol{color:var(--GR)}
-.lb-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:1.2rem;font-weight:900;color:white;box-shadow:0 3px 10px rgba(0,0,0,.2)}
-.lb-nom{font-size:.84rem;font-weight:800;color:white}
-.lb-rol{font-size:.6rem;font-weight:600;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.4px}
-.btn-entrar{background:white;color:var(--R);border:none;border-radius:16px;padding:14px 36px;
-  font-family:'Nunito',sans-serif;font-size:.97rem;font-weight:900;cursor:pointer;
-  box-shadow:0 6px 20px rgba(0,0,0,.2);transition:all .2s;display:none;margin-top:4px}
+.lb-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:1.15rem;font-weight:900;color:white;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.lb-nom{font-size:.82rem;font-weight:800;color:white}
+.lb-rol{font-size:.58rem;font-weight:600;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.4px}
+.btn-entrar{background:white;color:var(--R);border:none;border-radius:15px;padding:14px 34px;
+  font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:900;cursor:pointer;
+  box-shadow:0 6px 20px rgba(0,0,0,.2);display:none;margin-top:4px}
 .btn-entrar.vis{display:block}
 .btn-entrar:active{transform:scale(.96)}
 
-/* ══ SETUP FIREBASE ══ */
-.setup-screen{position:fixed;inset:0;background:white;z-index:150;overflow-y:auto;padding:24px;display:none}
+/* SETUP */
+.setup-screen{position:fixed;inset:0;background:white;z-index:150;overflow-y:auto;padding:22px;display:none}
 .setup-screen.on{display:block}
-.setup-header{background:linear-gradient(135deg,var(--R2),var(--R));color:white;border-radius:18px;
-  padding:20px;text-align:center;margin-bottom:20px}
-.setup-header h2{font-size:1.3rem;font-weight:900;margin-bottom:4px}
-.setup-header p{font-size:.78rem;opacity:.88;line-height:1.4}
-.setup-step{background:var(--GR2);border-radius:14px;padding:13px;margin-bottom:10px;
-  display:flex;gap:11px;align-items:flex-start}
-.setup-step-num{width:28px;height:28px;border-radius:50%;background:var(--R);color:white;
-  display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:900;flex-shrink:0}
-.setup-step-txt{font-size:.8rem;line-height:1.55;color:var(--TX)}
-.setup-step-txt strong{color:var(--R)}
-.setup-step-txt code{background:white;border:1px solid var(--GR3);border-radius:5px;
-  padding:1px 5px;font-size:.75rem;color:var(--R2);font-family:monospace}
-.setup-inp-lbl{font-size:.78rem;font-weight:800;color:var(--GR);margin-bottom:4px;margin-top:10px}
-.setup-inp{width:100%;border:2px solid var(--GR3);border-radius:12px;padding:11px 13px;
-  font-family:monospace;font-size:.8rem;color:var(--TX);background:var(--GR2);outline:none;
-  transition:border .2s;word-break:break-all}
+.setup-header{background:linear-gradient(135deg,var(--R2),var(--R));color:white;
+  border-radius:16px;padding:18px;text-align:center;margin-bottom:18px}
+.setup-header h2{font-size:1.2rem;font-weight:900;margin-bottom:3px}
+.setup-header p{font-size:.76rem;opacity:.88;line-height:1.4}
+.setup-step{background:var(--GR2);border-radius:13px;padding:12px;margin-bottom:9px;
+  display:flex;gap:10px;align-items:flex-start}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--R);color:white;
+  display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:900;flex-shrink:0}
+.st{font-size:.78rem;line-height:1.5;color:var(--TX)}
+.st strong{color:var(--R)}.st code{background:white;border:1px solid var(--GR3);
+  border-radius:4px;padding:1px 4px;font-size:.72rem;font-family:monospace;color:var(--R2)}
+.setup-inp-lbl{font-size:.76rem;font-weight:800;color:var(--GR);margin:9px 0 3px}
+.setup-inp{width:100%;border:2px solid var(--GR3);border-radius:11px;padding:10px 12px;
+  font-family:monospace;font-size:.78rem;color:var(--TX);background:var(--GR2);outline:none}
 .setup-inp:focus{border-color:var(--R);background:white}
 
-/* EMPTY */
-.empty{text-align:center;padding:24px 14px;color:#D1D5DB}
-.empty .ei{font-size:2.2rem;margin-bottom:6px}
-.empty p{font-size:.82rem;font-weight:600}
-
-/* SEPARADOR */
-.sep{height:8px}
-
 /* LOADING */
-.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:190;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;display:none}
-.loading-overlay.on{display:flex}
-.spinner{width:40px;height:40px;border:4px solid var(--CR2);border-top-color:var(--R);
+.loading{position:fixed;inset:0;background:rgba(255,255,255,.88);z-index:190;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.loading.on{display:flex}
+.spinner{width:38px;height:38px;border:4px solid var(--CR2);border-top-color:var(--R);
   border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-txt{font-size:.88rem;font-weight:700;color:var(--GR)}
+.loading-txt{font-size:.86rem;font-weight:700;color:var(--GR)}
+
+.empty{text-align:center;padding:22px 14px;color:#D1D5DB}
+.empty .ei{font-size:2rem;margin-bottom:5px}
+.empty p{font-size:.8rem;font-weight:600}
+.sep{height:8px}
+.sec-lbl{font-size:.68rem;font-weight:800;color:var(--GR);text-transform:uppercase;
+  letter-spacing:1px;margin:14px 0 8px;padding-left:2px}
 </style>
 </head>
 <body>
 
-<!-- ══ SETUP FIREBASE ══ -->
+<!-- SETUP -->
 <div class="setup-screen" id="setup-screen">
   <div class="setup-header">
-    <div style="font-size:2rem;margin-bottom:6px">🔥</div>
+    <div style="font-size:1.8rem;margin-bottom:5px">🔥</div>
     <h2>Configurar sincronización</h2>
-    <p>Seguí estos pasos para que todos los teléfonos compartan los mismos datos en tiempo real</p>
+    <p>Pegá los datos de tu proyecto Firebase para que todos los teléfonos compartan los mismos datos</p>
   </div>
-
-  <div class="setup-step">
-    <div class="setup-step-num">1</div>
-    <div class="setup-step-txt">Entrá a <strong>console.firebase.google.com</strong> con una cuenta de Gmail (la de MasterPizza o cualquier Gmail)</div>
-  </div>
-  <div class="setup-step">
-    <div class="setup-step-num">2</div>
-    <div class="setup-step-txt">Hacé clic en <strong>"Crear un proyecto"</strong> → nombre: <code>masterpizza-tandil</code> → seguir sin Analytics → <strong>Crear proyecto</strong></div>
-  </div>
-  <div class="setup-step">
-    <div class="setup-step-num">3</div>
-    <div class="setup-step-txt">En el menú izquierdo → <strong>Compilación</strong> → <strong>Realtime Database</strong> → <strong>"Crear base de datos"</strong> → elegí <strong>Sudamérica</strong> → <strong>Iniciar en modo de prueba</strong> → Habilitar</div>
-  </div>
-  <div class="setup-step">
-    <div class="setup-step-num">4</div>
-    <div class="setup-step-txt">Volvé al inicio del proyecto → ícono <strong>&lt;/&gt;</strong> (Web) → registrá la app con el nombre <code>masterpizza</code> → <strong>NO</strong> marques Firebase Hosting → clic en <strong>Registrar app</strong></div>
-  </div>
-  <div class="setup-step">
-    <div class="setup-step-num">5</div>
-    <div class="setup-step-txt">Vas a ver un bloque de código con <code>firebaseConfig = &#123; ... &#125;</code>. Copiá los valores y pegálos acá abajo 👇</div>
-  </div>
-
-  <div style="margin-top:4px">
-    <div class="setup-inp-lbl">API Key</div>
-    <input class="setup-inp" id="cfg-apiKey" placeholder="AIzaSy...">
-    <div class="setup-inp-lbl">Database URL</div>
-    <input class="setup-inp" id="cfg-dbUrl" placeholder="https://masterpizza-tandil-default-rtdb.firebaseio.com">
-    <div class="setup-inp-lbl">Project ID</div>
-    <input class="setup-inp" id="cfg-projectId" placeholder="masterpizza-tandil">
-    <div class="setup-inp-lbl">App ID</div>
-    <input class="setup-inp" id="cfg-appId" placeholder="1:123456789:web:abc123">
-  </div>
-
-  <button class="btn btn-R" style="margin-top:16px" onclick="guardarConfig()">🔥 Conectar y sincronizar</button>
-  <button class="btn btn-GR" onclick="usarSinSync()">📵 Usar sin sincronización (solo este teléfono)</button>
-
-  <p style="font-size:.7rem;color:#ccc;text-align:center;margin-top:4px;padding-bottom:20px">
-    Si ya configuraste antes, la app carga automáticamente tu configuración.
-  </p>
+  <div class="setup-step"><div class="sn">1</div><div class="st">Entrá a <strong>console.firebase.google.com</strong> y creá el proyecto <code>masterpizza-tandil</code></div></div>
+  <div class="setup-step"><div class="sn">2</div><div class="st">Creá la <strong>Realtime Database</strong> en modo de prueba</div></div>
+  <div class="setup-step"><div class="sn">3</div><div class="st">Registrá la app web <code>&lt;/&gt;</code> y copiá los valores del <code>firebaseConfig</code></div></div>
+  <div class="setup-inp-lbl">API Key</div>
+  <input class="setup-inp" id="cfg-apiKey" placeholder="AIzaSy...">
+  <div class="setup-inp-lbl">Database URL</div>
+  <input class="setup-inp" id="cfg-dbUrl" placeholder="https://masterpizza-tandil-default-rtdb.firebaseio.com">
+  <div class="setup-inp-lbl">Project ID</div>
+  <input class="setup-inp" id="cfg-projectId" placeholder="masterpizza-tandil">
+  <div class="setup-inp-lbl">App ID</div>
+  <input class="setup-inp" id="cfg-appId" placeholder="1:123456789:web:abc123">
+  <button class="btn btn-R" style="margin-top:14px" onclick="guardarConfig()">🔥 Conectar y sincronizar</button>
+  <button class="btn btn-GR" onclick="usarSinSync()">📵 Usar sin sincronización</button>
 </div>
 
-<!-- ══ LOGIN ══ -->
-<div class="login-screen" id="login-screen" style="display:none">
+<!-- LOGIN -->
+<div class="login-screen" id="login-screen">
   <div class="login-logo">🍕</div>
   <div class="login-title">MasterPizza</div>
   <div class="login-sub">Cooperativa · Tandil</div>
@@ -331,17 +355,14 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
   <button class="btn-entrar" id="btn-entrar" onclick="entrar()">Entrar →</button>
 </div>
 
-<!-- ══ TOPBAR ══ -->
+<!-- TOPBAR -->
 <div class="topbar" id="topbar" style="display:none">
   <div class="tb-left">
     <span class="tb-pizza">🍕</span>
-    <div>
-      <div class="tb-title">MasterPizza</div>
-      <div class="tb-sub">Turno Tarde</div>
-    </div>
+    <div><div class="tb-title">MasterPizza</div><div class="tb-sub">Cooperativa · Tandil</div></div>
   </div>
   <div class="tb-right">
-    <div class="sync-dot off" id="sync-dot" title="Estado de sincronización"></div>
+    <div class="sync-dot off" id="sync-dot"></div>
     <div class="tb-user" id="tb-user" onclick="cerrarSesion()">
       <div id="tb-av" style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;color:white"></div>
       <span id="tb-nom">…</span>
@@ -349,10 +370,10 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
   </div>
 </div>
 
-<!-- ══ MAIN ══ -->
+<!-- MAIN -->
 <div class="main" id="main-area" style="display:none">
 
-  <!-- DÍA -->
+  <!-- VISTA: DÍA / TURNO -->
   <div class="vista on" id="v-dia">
     <div class="fecha-nav">
       <button class="btn-nav" onclick="cambDia(-1)">‹</button>
@@ -362,33 +383,54 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
       </div>
       <button class="btn-nav" onclick="cambDia(1)">›</button>
     </div>
-    <div class="card" id="card-pres">
-      <div class="card-title">📍 Presentismo</div>
-      <div class="pres-grid" id="pres-grid"></div>
-      <div class="att-sum" id="att-sum"></div>
+
+    <!-- Tabs de turno -->
+    <div class="turno-tabs" id="turno-tabs"></div>
+
+    <!-- Contenido del turno activo -->
+    <div id="turno-header-wrap"></div>
+
+    <div class="card" id="card-asist">
+      <div class="card-title">📍 Asistencia en este turno</div>
+      <div class="asist-grid" id="asist-grid"></div>
     </div>
+
     <div class="card">
-      <div class="card-title">🍕 Producción</div>
+      <div class="card-title">🍕 Producción en este turno</div>
       <div class="prod-list" id="prod-list"></div>
     </div>
-    <div id="card-pedidos-wrap">
+
+    <!-- Pedidos (solo encargadas) -->
+    <div id="pedidos-wrap">
       <div class="card">
         <div class="card-title">📦 Pedidos del día</div>
+        <div class="sec-lbl">Tipo de pedido</div>
+        <div class="tipo-row">
+          <div class="tipo-chip on L" id="tc-L" onclick="selTipo('L')">🏪 Lugar</div>
+          <div class="tipo-chip F"    id="tc-F" onclick="selTipo('F')">👨‍👩‍👧 Familiar</div>
+          <div class="tipo-chip A"    id="tc-A" onclick="selTipo('A')">👫 Amigo</div>
+        </div>
         <div class="pedido-form">
-          <input type="text" class="inp" id="ped-cliente" placeholder="Cliente o descripción…" autocomplete="off">
+          <input type="text" class="inp" id="ped-cliente" placeholder="Nombre del lugar / persona…" autocomplete="off">
           <div class="inp-row">
-            <input type="number" class="inp" id="ped-cant" placeholder="Cant." min="1" inputmode="numeric" style="max-width:85px">
-            <input type="text" class="inp" id="ped-nota" placeholder="Nota (opcional)…" autocomplete="off">
+            <input type="number" class="inp" id="ped-cant" placeholder="Cant." min="1" inputmode="numeric" style="max-width:80px">
+            <input type="text" class="inp" id="ped-nota" placeholder="Nota opcional…" autocomplete="off">
           </div>
           <button class="btn btn-OR" style="margin-bottom:0" onclick="agregarPedido()">➕ Agregar pedido</button>
         </div>
         <div class="pedido-list" id="pedido-list"></div>
       </div>
     </div>
+
+    <!-- Resumen del día -->
+    <div class="sec-lbl">📊 Resumen total del día</div>
+    <div class="dia-resumen" id="dia-resumen"></div>
+    <div class="pill-total" id="dia-total-pill"></div>
+
     <div style="height:80px"></div>
   </div>
 
-  <!-- SEMANA -->
+  <!-- VISTA: SEMANA -->
   <div class="vista" id="v-semana">
     <div class="fecha-nav">
       <button class="btn-nav" onclick="cambSem(-1);renderSem()">‹</button>
@@ -400,65 +442,56 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
     </div>
     <div id="sem-pill"></div>
     <div class="stats-g" id="sem-stats"></div>
-    <div class="card-title" style="padding:0 2px;margin-bottom:8px">📋 Detalle semanal</div>
+    <div class="sec-lbl">📋 Producción por día</div>
     <div class="tabla-wrap" id="sem-tabla"></div>
-    <div class="sep"></div>
-    <button class="btn btn-B"  onclick="exportSemXLS()">📥 Descargar Excel Semana</button>
-    <button class="btn btn-WA" onclick="compartirSemWA()">📲 Compartir por WhatsApp</button>
+    <button class="btn btn-B"  onclick="exportSemXLS()">📥 Excel Semana (Producción + Asistencia + Pedidos)</button>
+    <button class="btn btn-WA" onclick="compartirSemWA()">📲 Compartir resumen por WhatsApp</button>
     <div style="height:16px"></div>
   </div>
 
-  <!-- MES -->
+  <!-- VISTA: MES -->
   <div class="vista" id="v-mes">
     <div class="mes-row">
-      <label>Mes</label>
-      <select id="mes-sel" onchange="renderMes()"></select>
-      <label>Año</label>
-      <select id="anio-sel" onchange="renderMes()"></select>
+      <label>Mes</label><select id="mes-sel" onchange="renderMes()"></select>
+      <label>Año</label><select id="anio-sel" onchange="renderMes()"></select>
     </div>
     <div id="mes-pill"></div>
     <div class="stats-g" id="mes-stats"></div>
-    <div class="card-title" style="padding:0 2px;margin-bottom:8px">📋 Detalle mensual</div>
+    <div class="sec-lbl">📋 Detalle mensual</div>
     <div class="tabla-wrap" id="mes-tabla"></div>
-    <div class="sep"></div>
     <button class="btn btn-B"  onclick="exportMesXLS()">📥 Excel Mes Completo</button>
     <button class="btn btn-WA" onclick="compartirMesWA()">📲 Compartir por WhatsApp</button>
     <button class="btn btn-MO" onclick="exportTodoXLS()" style="margin-bottom:0">📊 Excel Historial Completo</button>
     <div style="height:16px"></div>
   </div>
 
-  <!-- DATOS -->
+  <!-- VISTA: DATOS -->
   <div class="vista" id="v-datos">
     <div class="card">
       <div class="card-title" id="sync-titulo">🔥 Sincronización</div>
-      <p id="sync-estado-txt" style="font-size:.82rem;color:var(--GR);line-height:1.5;margin-bottom:12px">Cargando estado…</p>
-      <button class="btn btn-OR" onclick="showSetup()" id="btn-reconfig">⚙️ Reconfigurar Firebase</button>
+      <p id="sync-txt" style="font-size:.82rem;color:var(--GR);line-height:1.5;margin-bottom:12px">…</p>
+      <button class="btn btn-OR" onclick="showSetup()">⚙️ Reconfigurar Firebase</button>
     </div>
     <div class="card">
-      <div class="card-title">💾 Copia de seguridad local</div>
-      <p style="font-size:.82rem;color:var(--GR);line-height:1.5;margin-bottom:12px">Exportá una copia de todos los datos aunque tengas Firebase activo.</p>
+      <div class="card-title">💾 Copia de seguridad</div>
       <button class="btn btn-OR" onclick="exportBackup()">📤 Guardar copia (.json)</button>
       <button class="btn btn-B"  onclick="document.getElementById('inp-import').click()">📥 Restaurar copia</button>
       <input type="file" id="inp-import" style="display:none" accept=".json" onchange="importBackup(event)">
     </div>
     <div class="card">
-      <div class="card-title">📲 Instalar como app</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div style="background:var(--GR2);border-radius:12px;padding:10px 12px;display:flex;gap:9px">
+      <div class="card-title">📲 Instalar como app en Android</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="background:var(--GR2);border-radius:11px;padding:10px 12px;display:flex;gap:9px;align-items:center">
           <div style="width:24px;height:24px;border-radius:50%;background:var(--R);color:white;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;flex-shrink:0">1</div>
-          <div style="font-size:.78rem;line-height:1.5">Abrí con <strong>Chrome</strong> en Android</div>
+          <div style="font-size:.78rem;line-height:1.4">Abrí con <strong>Chrome</strong></div>
         </div>
-        <div style="background:var(--GR2);border-radius:12px;padding:10px 12px;display:flex;gap:9px">
+        <div style="background:var(--GR2);border-radius:11px;padding:10px 12px;display:flex;gap:9px;align-items:center">
           <div style="width:24px;height:24px;border-radius:50%;background:var(--R);color:white;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;flex-shrink:0">2</div>
-          <div style="font-size:.78rem;line-height:1.5">Tocá los <strong>⋮ tres puntos</strong> arriba a la derecha</div>
+          <div style="font-size:.78rem;line-height:1.4">Tocá <strong>⋮ → "Agregar a pantalla de inicio"</strong></div>
         </div>
-        <div style="background:var(--GR2);border-radius:12px;padding:10px 12px;display:flex;gap:9px">
-          <div style="width:24px;height:24px;border-radius:50%;background:var(--R);color:white;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;flex-shrink:0">3</div>
-          <div style="font-size:.78rem;line-height:1.5"><strong>"Agregar a pantalla de inicio"</strong> → Agregar</div>
-        </div>
-        <div style="background:#F0FDF4;border-radius:12px;padding:10px 12px;display:flex;gap:9px;border:1px solid #86EFAC">
-          <div style="font-size:1rem;flex-shrink:0">✅</div>
-          <div style="font-size:.78rem;line-height:1.5;color:var(--G);font-weight:700">Ícono 🍕 en el inicio, pantalla completa, sin barra de Chrome</div>
+        <div style="background:#F0FDF4;border-radius:11px;padding:10px 12px;border:1px solid #86EFAC;display:flex;gap:9px;align-items:center">
+          <div style="font-size:1rem">✅</div>
+          <div style="font-size:.78rem;line-height:1.4;color:var(--G);font-weight:700">Ícono 🍕 en el inicio, pantalla completa</div>
         </div>
       </div>
     </div>
@@ -467,7 +500,7 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
 
 </div><!-- /main -->
 
-<button class="fab" id="fab" onclick="guardarDia()" style="display:none">✅ Guardar día</button>
+<button class="fab" id="fab" onclick="guardarTurno()" style="display:none">✅ Guardar turno</button>
 
 <nav class="bnav" id="bnav" style="display:none">
   <button class="bnav-btn on" id="bn-dia"    onclick="irA('dia')">   <span class="bnav-ico">📋</span><span class="bnav-txt">Día</span></button>
@@ -477,133 +510,89 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
 </nav>
 
 <div class="toast" id="toast"></div>
-<div class="loading-overlay" id="loading"><div class="spinner"></div><div class="loading-txt" id="loading-txt">Conectando…</div></div>
+<div class="loading" id="loading"><div class="spinner"></div><div class="loading-txt" id="loading-txt">Conectando…</div></div>
 
 <script>
-/* ═══════════════════════════════════════════════
-   PERSONAS
-═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   CONFIG PERSONAS Y TURNOS
+═══════════════════════════════════════════ */
 const PERSONAS = [
-  {id:'loreley',    nom:'Loreley',     ini:'L', color:'#e83e8c', rol:'admin'},
-  {id:'guillermina',nom:'Guillermina', ini:'G', color:'#6610f2', rol:'admin'},
-  {id:'silvana',    nom:'Silvana',     ini:'S', color:'#0d6efd', rol:'admin'},
-  {id:'jose',       nom:'Jose',        ini:'J', color:'#fd7e14', rol:'colab'},
-  {id:'mili',       nom:'Mili',        ini:'M', color:'#20c997', rol:'colab'},
-  {id:'lucho',      nom:'Lucho',       ini:'L', color:'#C8102E', rol:'colab'},
-  {id:'mati',       nom:'Mati',        ini:'M', color:'#f4a623', rol:'colab'},
+  {id:'guillermina', nom:'Guillermina', ini:'G', color:'#6610f2', rol:'encargada', turno:'M'},
+  {id:'loreley',     nom:'Loreley',     ini:'L', color:'#e83e8c', rol:'encargada', turno:'MD'},
+  {id:'silvana',     nom:'Silvana',     ini:'S', color:'#0d6efd', rol:'encargada', turno:'T'},
+  {id:'jose',        nom:'Jose',        ini:'J', color:'#fd7e14', rol:'operario',  turno:null},
+  {id:'mili',        nom:'Mili',        ini:'M', color:'#20c997', rol:'operario',  turno:null},
+  {id:'lucho',       nom:'Lucho',       ini:'L', color:'#C8102E', rol:'operario',  turno:null},
+  {id:'matias',      nom:'Matias',      ini:'M', color:'#f4a623', rol:'operario',  turno:null},
 ];
-const ADMINS  = PERSONAS.filter(p=>p.rol==='admin');
-const COLABS  = PERSONAS.filter(p=>p.rol==='colab');
-const MESES   = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const D_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-const D_LARGO = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-const LKEY    = 'masterpizza_v4_local';
-const CFGKEY  = 'masterpizza_firebase_cfg';
 
-let usuario   = null;
-let diaOffset = 0;
-let semOffset = 0;
-let fbDb      = null;   // Firebase database reference
-let modoSync  = false;
-let listeners = {};     // Firebase listeners activos
-let cacheLocal= {};     // cache en memoria
+const TURNOS = [
+  {id:'M',  nom:'Mañana',   ico:'🌅', encargada:'guillermina', color:'#f59e0b', cls:'M'},
+  {id:'MD', nom:'Mediodía', ico:'☀️', encargada:'loreley',     color:'#3b82f6', cls:'MD'},
+  {id:'T',  nom:'Tarde',    ico:'🌆', encargada:'silvana',     color:'#C8102E', cls:'T'},
+];
 
-/* ═══════════════════════════════════════════════
-   STORAGE LOCAL (fallback / cache)
-═══════════════════════════════════════════════ */
+const OPERARIOS   = PERSONAS.filter(p=>p.rol==='operario');
+const ENCARGADAS  = PERSONAS.filter(p=>p.rol==='encargada');
+const MESES       = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const D_CORTO     = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const D_LARGO     = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const LKEY        = 'mp_v5_local';
+const CFGKEY      = 'mp_firebase_cfg';
+const TIPOS_PED   = {L:{nom:'Lugar',ico:'🏪'}, F:{nom:'Familiar',ico:'👨‍👩‍👧'}, A:{nom:'Amigo',ico:'👫'}};
+
+let usuario     = null;
+let diaOffset   = 0;
+let semOffset   = 0;
+let turnoActivo = 'M'; // M, MD, T
+let tipoActivo  = 'L';
+let fbDb        = null;
+let modoSync    = false;
+let fbListeners = {};
+let memCache    = {};
+
+/* ═══════════════════════════════════════════
+   STORAGE
+═══════════════════════════════════════════ */
 const getLocal  = ()       => { try{return JSON.parse(localStorage.getItem(LKEY)||'{}')}catch{return{}} };
 const saveLocal = d        => localStorage.setItem(LKEY,JSON.stringify(d));
 const getCfg    = ()       => { try{return JSON.parse(localStorage.getItem(CFGKEY)||'null')}catch{return null} };
 const saveCfg   = c        => localStorage.setItem(CFGKEY,JSON.stringify(c));
 
-/* ═══════════════════════════════════════════════
-   FIREBASE INIT
-═══════════════════════════════════════════════ */
-function initFirebase(cfg){
-  try {
-    if(firebase.apps.length) firebase.app().delete();
-    firebase.initializeApp({
-      apiKey:     cfg.apiKey,
-      authDomain: cfg.projectId+'.firebaseapp.com',
-      databaseURL: cfg.dbUrl,
-      projectId:  cfg.projectId,
-      appId:      cfg.appId,
-    });
-    fbDb = firebase.database();
-    modoSync = true;
-    document.getElementById('sync-dot').className = 'sync-dot sync';
-    // Monitor conexión
-    firebase.database().ref('.info/connected').on('value', snap => {
-      const conn = snap.val();
-      document.getElementById('sync-dot').className = 'sync-dot' + (conn?'':' off');
-    });
-    return true;
-  } catch(e) {
-    console.error('Firebase error:', e);
-    modoSync = false;
-    return false;
-  }
-}
-
-/* ═══════════════════════════════════════════════
-   LEER / ESCRIBIR DATOS (Firebase o Local)
-═══════════════════════════════════════════════ */
-const isoPath = s => s; // Firebase key = YYYY-MM-DD (sin barras)
-
 function getDia(isoStr){
-  if(cacheLocal[isoStr]) return cacheLocal[isoStr];
-  const loc = getLocal();
-  return loc[isoStr] || {presentismo:{},produccion:{},pedidos:[]};
+  if(memCache[isoStr]) return JSON.parse(JSON.stringify(memCache[isoStr]));
+  const loc=getLocal(); const d=loc[isoStr];
+  if(d){ memCache[isoStr]=d; return JSON.parse(JSON.stringify(d)); }
+  return {turnos:{M:{asistencia:{},produccion:{}},MD:{asistencia:{},produccion:{}},T:{asistencia:{},produccion:{}}},pedidos:[]};
 }
 
-function setDia(isoStr, obj){
-  // Guardar local siempre
-  const loc = getLocal(); loc[isoStr] = obj; saveLocal(loc);
-  cacheLocal[isoStr] = obj;
-  // Guardar en Firebase si está disponible
-  if(modoSync && fbDb){
-    const clean = JSON.parse(JSON.stringify(obj)); // deep clone
-    // Firebase no acepta arrays undefined — limpiar pedidos
-    if(!clean.pedidos) clean.pedidos = {};
-    // Convertir array de pedidos a objeto para Firebase
+function setDia(isoStr,obj){
+  const loc=getLocal(); loc[isoStr]=obj; saveLocal(loc); memCache[isoStr]=obj;
+  if(modoSync&&fbDb){
+    const clean=JSON.parse(JSON.stringify(obj));
     if(Array.isArray(clean.pedidos)){
-      const pObj = {};
-      clean.pedidos.forEach((p,i)=>pObj['p'+i]=p);
-      clean.pedidos = pObj;
+      const po={}; clean.pedidos.forEach((p,i)=>po['p'+i]=p); clean.pedidos=po;
     }
-    fbDb.ref('dias/'+isoStr).set(clean)
-      .catch(e=>snack('⚠️ Sin internet — guardado solo en este teléfono','warn'));
+    fbDb.ref('dias/'+isoStr).set(clean).catch(()=>snack('⚠️ Sin internet — guardado local','warn'));
   }
 }
 
-function escucharDia(isoStr, callback){
-  if(!modoSync || !fbDb) return;
-  // Remover listener previo del mismo día si existe
-  if(listeners[isoStr]){
-    fbDb.ref('dias/'+isoStr).off('value', listeners[isoStr]);
-  }
-  listeners[isoStr] = fbDb.ref('dias/'+isoStr).on('value', snap => {
-    const val = snap.val();
-    if(val){
-      // Convertir pedidos de objeto a array
-      if(val.pedidos && !Array.isArray(val.pedidos)){
-        val.pedidos = Object.values(val.pedidos);
-      }
-      if(!val.pedidos) val.pedidos = [];
-      // Merge: Firebase gana en presentismo y produccion; mantener local de pedidos si Firebase vacio
-      const local = getLocal();
-      if(!local[isoStr]) local[isoStr] = {presentismo:{},produccion:{},pedidos:[]};
-      local[isoStr] = val;
-      saveLocal(local);
-      cacheLocal[isoStr] = val;
-      callback(val);
-    }
+function escucharDia(isoStr,cb){
+  if(!modoSync||!fbDb) return;
+  if(fbListeners[isoStr]) fbDb.ref('dias/'+isoStr).off('value',fbListeners[isoStr]);
+  fbListeners[isoStr]=fbDb.ref('dias/'+isoStr).on('value',snap=>{
+    const val=snap.val(); if(!val) return;
+    if(val.pedidos&&!Array.isArray(val.pedidos)) val.pedidos=Object.values(val.pedidos);
+    if(!val.pedidos) val.pedidos=[];
+    if(!val.turnos) val.turnos={M:{asistencia:{},produccion:{}},MD:{asistencia:{},produccion:{}},T:{asistencia:{},produccion:{}}};
+    ['M','MD','T'].forEach(t=>{ if(!val.turnos[t]) val.turnos[t]={asistencia:{},produccion:{}}; });
+    const loc=getLocal(); loc[isoStr]=val; saveLocal(loc); memCache[isoStr]=val; cb(val);
   });
 }
 
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    FECHAS
-═══════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function hoyMas(off){ const d=new Date(); d.setDate(d.getDate()+off); d.setHours(0,0,0,0); return d; }
 const iso = d => d.toISOString().slice(0,10);
 const fc  = d => d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0');
@@ -611,208 +600,249 @@ const fl  = d => fc(d)+'/'+d.getFullYear();
 function getLunes(off){ const h=new Date(),d=h.getDay()||7,l=new Date(h); l.setDate(h.getDate()-d+1+off*7); l.setHours(0,0,0,0); return l; }
 function semFechas(off){ const l=getLunes(off); return[0,1,2,3,4].map(i=>{ const d=new Date(l); d.setDate(l.getDate()+i); return d; }); }
 
-/* ═══════════════════════════════════════════════
-   SETUP FIREBASE
-═══════════════════════════════════════════════ */
-function showSetup(){
-  const cfg = getCfg();
-  if(cfg){
-    document.getElementById('cfg-apiKey').value    = cfg.apiKey||'';
-    document.getElementById('cfg-dbUrl').value     = cfg.dbUrl||'';
-    document.getElementById('cfg-projectId').value = cfg.projectId||'';
-    document.getElementById('cfg-appId').value     = cfg.appId||'';
-  }
-  document.getElementById('setup-screen').classList.add('on');
+/* ═══════════════════════════════════════════
+   FIREBASE
+═══════════════════════════════════════════ */
+function initFirebase(cfg){
+  try{
+    if(firebase.apps.length) firebase.app().delete();
+    firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.projectId+'.firebaseapp.com',
+      databaseURL:cfg.dbUrl,projectId:cfg.projectId,appId:cfg.appId});
+    fbDb=firebase.database(); modoSync=true;
+    firebase.database().ref('.info/connected').on('value',s=>{
+      document.getElementById('sync-dot').className='sync-dot'+(s.val()?'':' off');
+    });
+    return true;
+  }catch(e){ modoSync=false; return false; }
 }
 
 function guardarConfig(){
-  const cfg = {
-    apiKey:    document.getElementById('cfg-apiKey').value.trim(),
-    dbUrl:     document.getElementById('cfg-dbUrl').value.trim(),
-    projectId: document.getElementById('cfg-projectId').value.trim(),
-    appId:     document.getElementById('cfg-appId').value.trim(),
-  };
+  const cfg={apiKey:$('cfg-apiKey').value.trim(),dbUrl:$('cfg-dbUrl').value.trim(),
+    projectId:$('cfg-projectId').value.trim(),appId:$('cfg-appId').value.trim()};
   if(!cfg.apiKey||!cfg.dbUrl||!cfg.projectId){ snack('⚠️ Completá todos los campos','warn'); return; }
-  showLoading('Conectando con Firebase…');
+  showLoad('Conectando…');
   setTimeout(()=>{
-    const ok = initFirebase(cfg);
-    hideLoading();
-    if(ok){ saveCfg(cfg); document.getElementById('setup-screen').classList.remove('on'); showLogin(); snack('🔥 Firebase conectado!','ok'); }
-    else { snack('❌ Error al conectar. Verificá los datos','err'); }
+    if(initFirebase(cfg)){ saveCfg(cfg); $('setup-screen').classList.remove('on'); hideLoad(); showLogin(); snack('🔥 Firebase conectado!','ok'); }
+    else { hideLoad(); snack('❌ Error — verificá los datos','err'); }
   },800);
 }
 
-function usarSinSync(){
-  modoSync = false;
-  localStorage.removeItem(CFGKEY);
-  document.getElementById('setup-screen').classList.remove('on');
-  showLogin();
-  snack('📵 Modo sin sincronización','warn');
+function usarSinSync(){ modoSync=false; localStorage.removeItem(CFGKEY); $('setup-screen').classList.remove('on'); showLogin(); }
+function showSetup(){
+  const cfg=getCfg();
+  if(cfg){ $('cfg-apiKey').value=cfg.apiKey||''; $('cfg-dbUrl').value=cfg.dbUrl||''; $('cfg-projectId').value=cfg.projectId||''; $('cfg-appId').value=cfg.appId||''; }
+  $('setup-screen').classList.add('on');
 }
 
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    LOGIN
-═══════════════════════════════════════════════ */
-let selLogin = null;
-
+═══════════════════════════════════════════ */
+let selLogin=null;
 function showLogin(){
-  document.getElementById('login-screen').style.display='flex';
-  const grid = document.getElementById('login-grid');
-  grid.innerHTML = '';
+  $('login-screen').classList.add('on');
+  const grid=$('login-grid'); grid.innerHTML='';
   PERSONAS.forEach(p=>{
-    const btn = document.createElement('div');
-    btn.className = 'login-btn'; btn.id = 'lbtn-'+p.id;
-    btn.innerHTML = `<div class="lb-av" style="background:${p.color}">${p.ini}</div>
+    const btn=document.createElement('div'); btn.className='login-btn'; btn.id='lbtn-'+p.id;
+    btn.innerHTML=`<div class="lb-av" style="background:${p.color}">${p.ini}</div>
       <div class="lb-nom">${p.nom}</div>
-      <div class="lb-rol">${p.rol==='admin'?'🔑 Admin':'🍕 Colab.'}</div>`;
-    btn.onclick = () => {
-      selLogin = p;
+      <div class="lb-rol">${p.rol==='encargada'?'🔑 Encargada':'🍕 Operario'}</div>`;
+    btn.onclick=()=>{
+      selLogin=p;
       document.querySelectorAll('.login-btn').forEach(b=>b.classList.remove('sel'));
       btn.classList.add('sel');
-      const be = document.getElementById('btn-entrar');
-      be.classList.add('vis'); be.textContent = 'Entrar como '+p.nom+' →';
+      const be=$('btn-entrar'); be.classList.add('vis'); be.textContent='Entrar como '+p.nom+' →';
     };
     grid.appendChild(btn);
   });
-  const saved = localStorage.getItem('mp_user');
+  const saved=localStorage.getItem('mp_user');
   if(saved){ const p=PERSONAS.find(x=>x.id===saved); if(p){ selLogin=p; entrar(); } }
 }
 
 function entrar(){
   if(!selLogin) return;
-  usuario = selLogin;
-  localStorage.setItem('mp_user', usuario.id);
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('topbar').style.display='flex';
-  document.getElementById('main-area').style.display='block';
-  document.getElementById('bnav').style.display='flex';
-  document.getElementById('fab').style.display='flex';
-  const av = document.getElementById('tb-av');
-  av.style.background = usuario.color; av.textContent = usuario.ini;
-  document.getElementById('tb-nom').textContent = usuario.nom;
-  const esAdmin = usuario.rol==='admin';
-  document.getElementById('card-pedidos-wrap').style.display = esAdmin?'block':'none';
-  updSyncEstado();
+  usuario=selLogin; localStorage.setItem('mp_user',usuario.id);
+  $('login-screen').classList.remove('on');
+  $('topbar').style.display='flex'; $('main-area').style.display='block';
+  $('bnav').style.display='flex'; $('fab').style.display='flex';
+  $('tb-av').style.background=usuario.color; $('tb-av').textContent=usuario.ini;
+  $('tb-nom').textContent=usuario.nom;
+  // Mostrar pedidos solo si es encargada
+  $('pedidos-wrap').style.display=usuario.rol==='encargada'?'block':'none';
+  // Ir al turno de la encargada si aplica
+  if(usuario.turno) turnoActivo=usuario.turno;
   initSel(); renderDia();
 }
 
 function cerrarSesion(){
   if(!confirm('¿Cerrar sesión?')) return;
-  // Remover listeners
-  Object.keys(listeners).forEach(k=>{ if(fbDb) fbDb.ref('dias/'+k).off('value',listeners[k]); });
-  listeners={};
-  localStorage.removeItem('mp_user');
-  location.reload();
+  Object.keys(fbListeners).forEach(k=>{ if(fbDb) fbDb.ref('dias/'+k).off('value',fbListeners[k]); });
+  fbListeners={}; localStorage.removeItem('mp_user'); location.reload();
 }
 
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    RENDER DÍA
-═══════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function diaActual(){ return hoyMas(diaOffset); }
 
 function updFechaLabel(){
   const d=diaActual();
-  document.getElementById('fn-fecha').textContent = D_LARGO[d.getDay()]+' '+fc(d)+'/'+d.getFullYear();
-  document.getElementById('fn-badge').textContent =
-    diaOffset===0?'🟢 Hoy':diaOffset===-1?'⬅️ Ayer':diaOffset===1?'➡️ Mañana':
-    (diaOffset<0?'Hace '+Math.abs(diaOffset)+' días':'En '+diaOffset+' días');
+  $('fn-fecha').textContent=D_LARGO[d.getDay()]+' '+fc(d)+'/'+d.getFullYear();
+  $('fn-badge').textContent=diaOffset===0?'🟢 Hoy':diaOffset===-1?'⬅️ Ayer':diaOffset===1?'➡️ Mañana':(diaOffset<0?'Hace '+Math.abs(diaOffset)+' días':'En '+diaOffset+' días');
+}
+
+function renderTurnoTabs(dd){
+  const cont=$('turno-tabs'); cont.innerHTML='';
+  TURNOS.forEach(t=>{
+    const totT=Object.values(dd.turnos?.[t.id]?.produccion||{}).reduce((s,v)=>s+(parseFloat(v)||0),0);
+    const btn=document.createElement('div');
+    btn.className='turno-tab'+(turnoActivo===t.id?' activo on-'+t.cls:'');
+    btn.innerHTML=`<span class="tt-ico">${t.ico}</span>
+      <div class="tt-nom">${t.nom}</div>
+      <div class="tt-enc">${PERSONAS.find(p=>p.id===t.encargada)?.nom}</div>
+      <div class="tt-tot">${totT>0?totT+' 🍕':'—'}</div>`;
+    btn.onclick=()=>{ turnoActivo=t.id; _renderTurnoContent(iso(diaActual()),dd); renderTurnoTabs(dd); };
+    cont.appendChild(btn);
+  });
 }
 
 function renderDia(){
   updFechaLabel();
-  const k = iso(diaActual());
-  const dd = getDia(k);
-  _renderDiaData(k, dd);
-  // Escuchar cambios en Firebase en tiempo real
-  escucharDia(k, (fresh)=>{
-    cacheLocal[k] = fresh;
-    _renderDiaData(k, fresh);
-  });
+  const k=iso(diaActual()); const dd=getDia(k);
+  _renderTurnoContent(k,dd); renderTurnoTabs(dd); renderResumenDia(dd);
+  escucharDia(k,fresh=>{ _renderTurnoContent(k,fresh); renderTurnoTabs(fresh); renderResumenDia(fresh); });
 }
 
-function _renderDiaData(k, dd){
-  if(!dd.presentismo) dd.presentismo={};
-  if(!dd.produccion)  dd.produccion={};
-  if(!dd.pedidos)     dd.pedidos=[];
-  const esAdmin = usuario?.rol==='admin';
+function _renderTurnoContent(k,dd){
+  if(!dd.turnos) dd.turnos={M:{},MD:{},T:{}};
+  ['M','MD','T'].forEach(t=>{ if(!dd.turnos[t]) dd.turnos[t]={asistencia:{},produccion:{}}; });
+  const turno=TURNOS.find(t=>t.id===turnoActivo);
+  const tData=dd.turnos[turnoActivo];
+  const asist=tData.asistencia||{};
+  const prod=tData.produccion||{};
+  const esEncargada=usuario?.rol==='encargada';
 
-  // PRESENTISMO
-  const pg = document.getElementById('pres-grid'); pg.innerHTML='';
-  let presentes=0;
-  PERSONAS.forEach(p=>{
-    const presente = dd.presentismo[p.id]!==false;
-    if(presente) presentes++;
+  // Header turno
+  $('turno-header-wrap').innerHTML=`<div class="turno-header ${turno.cls}">
+    <span class="th-ico">${turno.ico}</span>
+    <div class="th-txt"><div class="th-nom">Turno ${turno.nom}</div>
+    <div class="th-enc">Encargada: ${PERSONAS.find(p=>p.id===turno.encargada)?.nom}</div></div></div>`;
+
+  // ASISTENCIA — encargada siempre presente + operarios
+  const ag=$('asist-grid'); ag.innerHTML='';
+  // Encargada del turno (siempre fija)
+  const enc=PERSONAS.find(p=>p.id===turno.encargada);
+  const encChip=document.createElement('div');
+  encChip.className='asist-chip presente fijo';
+  encChip.innerHTML=`<div class="asist-av" style="background:${enc.color}">${enc.ini}</div>
+    <div><div class="asist-nom">${enc.nom}</div><div class="asist-rol">Encargada</div></div>
+    <span class="asist-ico">✅</span>`;
+  ag.appendChild(encChip);
+  // Operarios (pueden o no estar)
+  OPERARIOS.forEach(op=>{
+    const presente=asist[op.id]!==false&&asist[op.id]!==undefined?asist[op.id]!==false:false;
     const chip=document.createElement('div');
-    chip.className='pres-chip'+(presente?' presente':' ausente')+(esAdmin?'':' readonly');
-    chip.innerHTML=`<div class="pres-av" style="background:${p.color}">${p.ini}</div>
-      <div><div class="pres-nom">${p.nom}</div><div class="pres-rol">${p.rol==='admin'?'Admin':'Colab.'}</div></div>
-      <span class="pres-ico">${presente?'✅':'❌'}</span>`;
-    if(esAdmin) chip.onclick=()=>togglePres(k,p.id);
-    pg.appendChild(chip);
+    chip.className='asist-chip'+(presente?' presente':' ausente')+(esEncargada?'':' fijo');
+    chip.innerHTML=`<div class="asist-av" style="background:${op.color}">${op.ini}</div>
+      <div><div class="asist-nom">${op.nom}</div><div class="asist-rol">Operario</div></div>
+      <span class="asist-ico">${presente?'✅':'➕'}</span>`;
+    if(esEncargada) chip.onclick=()=>toggleAsist(k,op.id);
+    ag.appendChild(chip);
   });
-  document.getElementById('att-sum').innerHTML=
-    `<span>Presentes: <strong style="color:${presentes>=5?'var(--G)':'var(--AM)'}">${presentes}</strong> / ${PERSONAS.length}</span>
-     <span style="font-size:.7rem;color:var(--GR)">Toca para cambiar</span>`;
 
-  // PRODUCCIÓN
-  const pl=document.getElementById('prod-list'); pl.innerHTML='';
-  COLABS.forEach(w=>{
-    const val=dd.produccion[w.id]||0;
-    const ausente=dd.presentismo[w.id]===false;
-    const puedeEditar=esAdmin||(usuario?.id===w.id);
-    const div=document.createElement('div'); div.className='prod-item'+(ausente?' ausente-hoy':'');
-    div.innerHTML=`<div class="prod-av" style="background:${w.color}">${w.ini}</div>
+  // PRODUCCIÓN — encargada + operarios presentes en este turno
+  const pl=$('prod-list'); pl.innerHTML='';
+  const todosEnTurno=[enc,...OPERARIOS.filter(op=>asist[op.id]===true)];
+  todosEnTurno.forEach(p=>{
+    const val=prod[p.id]||0;
+    const puedeEditar=esEncargada||(usuario?.id===p.id);
+    const div=document.createElement('div'); div.className='prod-item';
+    div.innerHTML=`<div class="prod-av" style="background:${p.color}">${p.ini}</div>
       <div class="prod-info">
-        <div class="prod-nom">${w.nom}</div>
-        <div class="prod-sub">${ausente?'⛔ Ausente':'🍕 Prepizzas'}</div>
+        <div class="prod-nom">${p.nom}</div>
+        <div class="prod-sub">${p.rol==='encargada'?'🔑 Encargada':'🍕 Operario'} · ${turno.nom}</div>
       </div>
       <div class="stepper">
-        <button class="step-btn" onclick="step('${w.id}',-1)" ${!puedeEditar?'disabled style=opacity:.3':''}>−</button>
-        <input type="number" class="step-val" id="pv-${w.id}" value="${val}" min="0" inputmode="numeric" ${!puedeEditar?'readonly style=opacity:.5':''}>
-        <button class="step-btn" onclick="step('${w.id}',1)"  ${!puedeEditar?'disabled style=opacity:.3':''}>+</button>
+        <button class="step-btn" onclick="step('${p.id}',-1)" ${!puedeEditar?'disabled style=opacity:.3':''}>−</button>
+        <input type="number" class="step-val" id="pv-${p.id}" value="${val}" min="0" inputmode="numeric" ${!puedeEditar?'readonly style=opacity:.5':''}>
+        <button class="step-btn" onclick="step('${p.id}',1)"  ${!puedeEditar?'disabled style=opacity:.3':''}>+</button>
       </div>`;
     pl.appendChild(div);
   });
+  if(!todosEnTurno.length||todosEnTurno.length===1){
+    pl.insertAdjacentHTML('beforeend','<div class="empty"><div class="ei">👆</div><p>Marcá asistencia para agregar operarios</p></div>');
+  }
 
-  // PEDIDOS
-  if(esAdmin) _renderPedidos(k, dd.pedidos||[]);
+  // Pedidos
+  if(esEncargada) _renderPedidos(k, dd.pedidos||[]);
 }
 
-function togglePres(k, pid){
+function toggleAsist(k,pid){
   const dd=getDia(k);
-  if(!dd.presentismo) dd.presentismo={};
-  dd.presentismo[pid]=dd.presentismo[pid]===false?true:false;
-  setDia(k,dd); _renderDiaData(k,dd);
+  if(!dd.turnos[turnoActivo].asistencia) dd.turnos[turnoActivo].asistencia={};
+  const actual=dd.turnos[turnoActivo].asistencia[pid];
+  dd.turnos[turnoActivo].asistencia[pid]=!actual;
+  setDia(k,dd); _renderTurnoContent(k,dd); renderResumenDia(dd);
 }
 
 function step(id,delta){
   const inp=document.getElementById('pv-'+id);
-  inp.value=Math.max(0,(parseFloat(inp.value)||0)+delta);
+  if(inp) inp.value=Math.max(0,(parseFloat(inp.value)||0)+delta);
 }
 
-function guardarDia(){
+function guardarTurno(){
   const k=iso(diaActual()); const dd=getDia(k);
-  COLABS.forEach(w=>{ dd.produccion[w.id]=parseFloat(document.getElementById('pv-'+w.id)?.value)||0; });
-  setDia(k,dd);
-  snack('✅ Guardado — '+D_LARGO[diaActual().getDay()]+' '+fc(diaActual())+(modoSync?' (sincronizado 🔥)':''),'ok');
+  if(!dd.turnos[turnoActivo].produccion) dd.turnos[turnoActivo].produccion={};
+  const turno=TURNOS.find(t=>t.id===turnoActivo);
+  const enc=PERSONAS.find(p=>p.id===turno.encargada);
+  const asist=dd.turnos[turnoActivo].asistencia||{};
+  const todosEnTurno=[enc,...OPERARIOS.filter(op=>asist[op.id]===true)];
+  todosEnTurno.forEach(p=>{ const inp=document.getElementById('pv-'+p.id); if(inp) dd.turnos[turnoActivo].produccion[p.id]=parseFloat(inp.value)||0; });
+  setDia(k,dd); renderResumenDia(dd); renderTurnoTabs(dd);
+  const turnoObj=TURNOS.find(t=>t.id===turnoActivo);
+  snack('✅ Turno '+turnoObj.nom+' guardado'+(modoSync?' 🔥':''),'ok');
 }
 
 function cambDia(d){ diaOffset+=d; renderDia(); }
 
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════
+   RESUMEN DÍA
+═══════════════════════════════════════════ */
+function renderResumenDia(dd){
+  const cont=$('dia-resumen'); cont.innerHTML='';
+  let totDia=0;
+  TURNOS.forEach(t=>{
+    const tot=Object.values(dd.turnos?.[t.id]?.produccion||{}).reduce((s,v)=>s+(parseFloat(v)||0),0);
+    totDia+=tot;
+    cont.innerHTML+=`<div class="dr-card ${t.cls}">
+      <div class="dr-ico">${t.ico}</div>
+      <div class="dr-nom">${t.nom}</div>
+      <div class="dr-num">${tot}</div>
+      <div class="dr-lab">prepizzas</div></div>`;
+  });
+  $('dia-total-pill').innerHTML=`<div class="pt-l"><div class="pt-lab">🍕 Total del día</div><div class="pt-num">${totDia}</div></div>
+    <div class="pt-r">${D_LARGO[diaActual().getDay()]}<br>${fc(diaActual())}</div>`;
+}
+
+/* ═══════════════════════════════════════════
    PEDIDOS
-═══════════════════════════════════════════════ */
-function _renderPedidos(key, peds){
-  const list=document.getElementById('pedido-list'); list.innerHTML='';
-  if(!peds.length){
-    list.innerHTML='<div class="empty"><div class="ei">📦</div><p>Sin pedidos cargados</p></div>'; return;
-  }
+═══════════════════════════════════════════ */
+let tipoSel='L';
+function selTipo(t){
+  tipoSel=t;
+  ['L','F','A'].forEach(x=>{ $('tc-'+x).className='tipo-chip'+(x===t?' on '+x:''); });
+}
+
+function _renderPedidos(key,peds){
+  const list=$('pedido-list'); list.innerHTML='';
+  if(!peds.length){ list.innerHTML='<div class="empty"><div class="ei">📦</div><p>Sin pedidos</p></div>'; return; }
   peds.forEach((p,i)=>{
+    const t=TIPOS_PED[p.tipo]||TIPOS_PED.L;
     const div=document.createElement('div'); div.className='pedido-item';
-    div.innerHTML=`<span style="font-size:1.3rem">📦</span>
+    div.innerHTML=`<div class="ped-tipo ${p.tipo}"></div>
+      <span style="font-size:1.2rem">${t.ico}</span>
       <div class="ped-info">
         <div class="ped-cliente">${p.cliente}</div>
-        <div class="ped-det">${p.nota||'Sin nota'}</div>
+        <div class="ped-det">${t.nom}${p.nota?' · '+p.nota:''}</div>
       </div>
       <div class="ped-cant">${p.cant}</div>
       <button class="btn-del" onclick="eliminarPedido('${key}',${i})">🗑</button>`;
@@ -821,154 +851,148 @@ function _renderPedidos(key, peds){
 }
 
 function agregarPedido(){
-  const cliente=document.getElementById('ped-cliente').value.trim();
-  const cant=parseInt(document.getElementById('ped-cant').value)||1;
-  const nota=document.getElementById('ped-nota').value.trim();
-  if(!cliente){ snack('⚠️ Escribí el cliente','warn'); return; }
+  const cliente=$('ped-cliente').value.trim();
+  const cant=parseInt($('ped-cant').value)||1;
+  const nota=$('ped-nota').value.trim();
+  if(!cliente){ snack('⚠️ Escribí el nombre','warn'); return; }
   const k=iso(diaActual()); const dd=getDia(k);
   if(!dd.pedidos) dd.pedidos=[];
-  dd.pedidos.push({cliente,cant,nota});
+  dd.pedidos.push({tipo:tipoSel,cliente,cant,nota});
   setDia(k,dd); _renderPedidos(k,dd.pedidos);
-  document.getElementById('ped-cliente').value='';
-  document.getElementById('ped-cant').value='';
-  document.getElementById('ped-nota').value='';
+  $('ped-cliente').value=''; $('ped-cant').value=''; $('ped-nota').value='';
   snack('📦 Pedido agregado','ok');
 }
 
 function eliminarPedido(key,idx){
-  const dd=getDia(key);
-  dd.pedidos.splice(idx,1);
-  setDia(key,dd); _renderPedidos(key,dd.pedidos);
+  const dd=getDia(key); dd.pedidos.splice(idx,1); setDia(key,dd); _renderPedidos(key,dd.pedidos);
 }
 
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    RENDER SEMANAL
-═══════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function renderSem(){
   const f=semFechas(semOffset);
-  document.getElementById('fn-sem').textContent=fc(f[0])+' al '+fc(f[4])+' — '+f[0].getFullYear();
-  document.getElementById('fn-sem-b').textContent=semOffset===0?'🟢 Semana actual':semOffset===-1?'⬅️ Semana pasada':'Semana '+(semOffset>0?'+':'')+semOffset;
-  // Cargar datos (Firebase ya sincronizó al local)
+  $('fn-sem').textContent=fc(f[0])+' al '+fc(f[4])+' — '+f[0].getFullYear();
+  $('fn-sem-b').textContent=semOffset===0?'🟢 Semana actual':semOffset===-1?'⬅️ Semana pasada':'Sem '+(semOffset>0?'+':'')+semOffset;
   const dd=f.map(x=>getDia(iso(x)));
-  let maxT=0;
-  const tp=COLABS.map(w=>{ const t=dd.reduce((s,d)=>s+(parseFloat(d.produccion?.[w.id])||0),0); maxT=Math.max(maxT,t); return{w,t}; });
-  const totG=tp.reduce((s,x)=>s+x.t,0);
-  document.getElementById('sem-pill').innerHTML=
-    `<div class="pill"><div class="pill-l"><div class="pill-lab">🍕 Total semana</div><div class="pill-num">${totG}</div></div>
-    <div class="pill-r">${fc(f[0])}<br>${fc(f[4])}</div></div>`;
-  const cg=document.getElementById('sem-stats'); cg.innerHTML='';
-  tp.forEach(({w,t})=>{ const p=maxT>0?Math.round(t/maxT*100):0; const dv=document.createElement('div'); dv.className='sc';
-    dv.innerHTML=`<div class="sc-av" style="background:${w.color}">${w.ini}</div><div class="sc-nom">${w.nom}</div>
-      <div class="sc-num">${t}</div><div class="sc-lab">prepizzas</div><div class="bw"><div class="bf" style="width:${p}%"></div></div>`; cg.appendChild(dv); });
-  const dias_c=['Lun','Mar','Mié','Jue','Vie'];
-  let h=`<table class="tbl"><thead><tr><th>Colab.</th>${dias_c.map((d,i)=>`<th>${d}<br><small style="font-weight:600;opacity:.7">${fc(f[i])}</small></th>`).join('')}<th>TOT</th></tr></thead><tbody>`;
-  let tD=Array(5).fill(0),tG=0;
-  COLABS.forEach(w=>{ h+=`<tr><td><div style="display:flex;align-items:center;gap:5px"><div style="width:18px;height:18px;border-radius:50%;background:${w.color};color:white;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;flex-shrink:0">${w.ini}</div>${w.nom}</div></td>`;
-    let rt=0; dd.forEach((d,i)=>{ const v=parseFloat(d.produccion?.[w.id])||0; tD[i]+=v; rt+=v; h+=`<td class="${v>0?'vd':'gr'}">${v>0?v:'—'}</td>`; });
-    tG+=rt; h+=`<td><strong style="color:var(--R)">${rt}</strong></td></tr>`; });
-  h+=`<tr class="ftot"><td>TOTAL</td>${tD.map(v=>`<td>${v}</td>`).join('')}<td>${tG}</td></tr></tbody></table>`;
-  document.getElementById('sem-tabla').innerHTML=h;
+  // Totales por persona (todos los turnos del día)
+  const tp={}; PERSONAS.forEach(p=>tp[p.id]=0);
+  dd.forEach(d=>{ TURNOS.forEach(t=>{ Object.entries(d.turnos?.[t.id]?.produccion||{}).forEach(([pid,v])=>{ if(tp[pid]!==undefined) tp[pid]+=(parseFloat(v)||0); }); }); });
+  const totG=Object.values(tp).reduce((s,v)=>s+v,0);
+  let maxT=Math.max(...Object.values(tp),1);
+  $('sem-pill').innerHTML=`<div class="pill-total"><div class="pt-l"><div class="pt-lab">🍕 Total semana</div><div class="pt-num">${totG}</div></div><div class="pt-r">${fc(f[0])}<br>${fc(f[4])}</div></div>`;
+  const cg=$('sem-stats'); cg.innerHTML='';
+  PERSONAS.forEach(p=>{ const t=tp[p.id]; const pct=Math.round(t/maxT*100); const dv=document.createElement('div'); dv.className='sc';
+    dv.innerHTML=`<div class="sc-av" style="background:${p.color}">${p.ini}</div><div class="sc-nom">${p.nom}</div>
+      <div class="sc-num">${t}</div><div class="sc-lab">prepizzas</div><div class="bw"><div class="bf" style="width:${pct}%"></div></div>`; cg.appendChild(dv); });
+  // Tabla con totales por día y turno
+  const dc=['Lun','Mar','Mié','Jue','Vie'];
+  let h=`<table class="tbl"><thead><tr><th>Persona</th>${dc.map((d,i)=>`<th>${d}<br><small style="opacity:.7">${fc(f[i])}</small></th>`).join('')}<th>TOT</th></tr></thead><tbody>`;
+  let tD=Array(5).fill(0),tG2=0;
+  PERSONAS.forEach(p=>{
+    h+=`<tr><td><div style="display:flex;align-items:center;gap:5px"><div style="width:17px;height:17px;border-radius:50%;background:${p.color};color:white;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:900;flex-shrink:0">${p.ini}</div>${p.nom}</div></td>`;
+    let rt=0;
+    dd.forEach((d,i)=>{ let vd=0; TURNOS.forEach(t=>{ vd+=(parseFloat(d.turnos?.[t.id]?.produccion?.[p.id])||0); }); tD[i]+=vd; rt+=vd; h+=`<td class="${vd>0?'vd':'gr'}">${vd>0?vd:'—'}</td>`; });
+    tG2+=rt; h+=`<td><strong style="color:var(--R)">${rt}</strong></td></tr>`;
+  });
+  h+=`<tr class="ftot"><td>TOTAL</td>${tD.map(v=>`<td>${v}</td>`).join('')}<td>${tG2}</td></tr></tbody></table>`;
+  $('sem-tabla').innerHTML=h;
 }
 function cambSem(d){ semOffset+=d; }
 
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    RENDER MENSUAL
-═══════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function initSel(){
-  const hoy=new Date(),as=document.getElementById('anio-sel'),ms=document.getElementById('mes-sel');
-  if(!as||!ms) return;
+  const hoy=new Date(),as=$('anio-sel'),ms=$('mes-sel'); if(!as||!ms) return;
   as.innerHTML=''; for(let a=hoy.getFullYear()-1;a<=hoy.getFullYear()+1;a++){ const o=document.createElement('option'); o.value=a; o.textContent=a; if(a===hoy.getFullYear()) o.selected=true; as.appendChild(o); }
   ms.innerHTML=''; MESES.forEach((m,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=m; if(i===hoy.getMonth()) o.selected=true; ms.appendChild(o); });
 }
 
 function renderMes(){
-  const mes=parseInt(document.getElementById('mes-sel').value);
-  const anio=parseInt(document.getElementById('anio-sel').value);
+  const mes=parseInt($('mes-sel').value); const anio=parseInt($('anio-sel').value);
   const data=getLocal();
   const fm=Object.keys(data).filter(k=>{ const d=new Date(k+'T00:00:00'); return d.getFullYear()===anio&&d.getMonth()===mes; }).sort();
-  const tp={}; COLABS.forEach(w=>tp[w.id]=0);
-  fm.forEach(f=>COLABS.forEach(w=>{ tp[w.id]+=(parseFloat(data[f].produccion?.[w.id])||0); }));
+  const tp={}; PERSONAS.forEach(p=>tp[p.id]=0);
+  fm.forEach(f=>{ const d=data[f]; TURNOS.forEach(t=>{ Object.entries(d.turnos?.[t.id]?.produccion||{}).forEach(([pid,v])=>{ if(tp[pid]!==undefined) tp[pid]+=(parseFloat(v)||0); }); }); });
   const tot=Object.values(tp).reduce((s,v)=>s+v,0); const maxP=Math.max(...Object.values(tp),1);
-  document.getElementById('mes-pill').innerHTML=
-    `<div class="pill"><div class="pill-l"><div class="pill-lab">🍕 Total ${MESES[mes]}</div><div class="pill-num">${tot}</div></div>
-    <div class="pill-r">${fm.length} días<br>registrados</div></div>`;
-  const cg=document.getElementById('mes-stats'); cg.innerHTML='';
-  COLABS.forEach(w=>{ const t=tp[w.id]; const p=Math.round(t/maxP*100); const dv=document.createElement('div'); dv.className='sc';
-    dv.innerHTML=`<div class="sc-av" style="background:${w.color}">${w.ini}</div><div class="sc-nom">${w.nom}</div>
-      <div class="sc-num">${t}</div><div class="sc-lab">en el mes</div><div class="bw"><div class="bf" style="width:${p}%"></div></div>`; cg.appendChild(dv); });
-  const tb=document.getElementById('mes-tabla');
+  $('mes-pill').innerHTML=`<div class="pill-total"><div class="pt-l"><div class="pt-lab">🍕 Total ${MESES[mes]}</div><div class="pt-num">${tot}</div></div><div class="pt-r">${fm.length} días<br>registrados</div></div>`;
+  const cg=$('mes-stats'); cg.innerHTML='';
+  PERSONAS.forEach(p=>{ const t=tp[p.id]; const pct=Math.round(t/maxP*100); const dv=document.createElement('div'); dv.className='sc';
+    dv.innerHTML=`<div class="sc-av" style="background:${p.color}">${p.ini}</div><div class="sc-nom">${p.nom}</div>
+      <div class="sc-num">${t}</div><div class="sc-lab">en el mes</div><div class="bw"><div class="bf" style="width:${pct}%"></div></div>`; cg.appendChild(dv); });
+  const tb=$('mes-tabla');
   if(!fm.length){ tb.innerHTML='<div class="empty"><div class="ei">📅</div><p>Sin datos este mes</p></div>'; return; }
-  let h=`<table class="tbl"><thead><tr><th>Fecha</th>${COLABS.map(w=>`<th>${w.ini}</th>`).join('')}<th>Tot</th></tr></thead><tbody>`;
+  let h=`<table class="tbl"><thead><tr><th>Fecha</th>${PERSONAS.map(p=>`<th>${p.ini}</th>`).join('')}<th>Tot</th></tr></thead><tbody>`;
   fm.forEach(f=>{ const d=data[f]; const dt=new Date(f+'T00:00:00');
     h+=`<tr><td>${D_CORTO[dt.getDay()]} ${fc(dt)}</td>`; let rt=0;
-    COLABS.forEach(w=>{ const v=parseFloat(d.produccion?.[w.id])||0; rt+=v; h+=`<td class="${v>0?'vd':'gr'}">${v>0?v:'—'}</td>`; });
+    PERSONAS.forEach(p=>{ let vd=0; TURNOS.forEach(t=>{ vd+=(parseFloat(d.turnos?.[t.id]?.produccion?.[p.id])||0); }); rt+=vd; h+=`<td class="${vd>0?'vd':'gr'}">${vd>0?vd:'—'}</td>`; });
     h+=`<td><strong style="color:var(--R)">${rt}</strong></td></tr>`; });
-  h+=`<tr class="ftot"><td>TOT</td>${COLABS.map(w=>`<td>${tp[w.id]}</td>`).join('')}<td>${tot}</td></tr></tbody></table>`;
+  h+=`<tr class="ftot"><td>TOT</td>${PERSONAS.map(p=>`<td>${tp[p.id]}</td>`).join('')}<td>${tot}</td></tr></tbody></table>`;
   tb.innerHTML=h;
 }
 
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    WHATSAPP
-═══════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function compartirSemWA(){
   const f=semFechas(semOffset); const dd=f.map(x=>getDia(iso(x)));
-  let txt='🍕 *MasterPizza — Reporte Semanal*\n📅 Semana '+fc(f[0])+' al '+fc(f[4])+'/'+f[0].getFullYear()+'\n\n';
+  let txt='🍕 *MasterPizza — Semana '+fc(f[0])+' al '+fc(f[4])+'/'+f[0].getFullYear()+'*\n\n';
   txt+='*🍕 Producción:*\n';
-  let tG=0;
-  COLABS.forEach(w=>{ const t=dd.reduce((s,d)=>s+(parseFloat(d.produccion?.[w.id])||0),0); tG+=t; txt+=`• ${w.nom}: *${t}*\n`; });
-  txt+=`▶ *TOTAL: ${tG} prepizzas*\n\n`;
-  txt+='*📍 Asistencia:*\n';
-  ['Lunes','Martes','Miércoles','Jueves','Viernes'].forEach((dl,i)=>{
-    const pr=dd[i].presentismo||{};
-    const nombres=PERSONAS.filter(p=>pr[p.id]!==false).map(p=>p.nom).join(', ');
-    txt+=`• ${dl}: ${nombres||'—'}\n`;
+  const tp={}; PERSONAS.forEach(p=>tp[p.id]=0);
+  dd.forEach(d=>TURNOS.forEach(t=>Object.entries(d.turnos?.[t.id]?.produccion||{}).forEach(([pid,v])=>{ if(tp[pid]!==undefined) tp[pid]+=(parseFloat(v)||0); })));
+  const totG=Object.values(tp).reduce((s,v)=>s+v,0);
+  PERSONAS.forEach(p=>{ if(tp[p.id]>0) txt+=`• ${p.nom}: *${tp[p.id]}*\n`; });
+  txt+=`▶ *TOTAL: ${totG} prepizzas*\n\n`;
+  txt+='*📍 Asistencia por día:*\n';
+  const dc2=['Lunes','Martes','Miércoles','Jueves','Viernes'];
+  dd.forEach((d,i)=>{
+    const presentes=[];
+    TURNOS.forEach(t=>{ const enc=PERSONAS.find(p=>p.id===TURNOS.find(tt=>tt.id===t.id).encargada);
+      presentes.push(enc.nom);
+      OPERARIOS.forEach(op=>{ if(d.turnos?.[t.id]?.asistencia?.[op.id]) presentes.push(op.nom); }); });
+    txt+=`• ${dc2[i]}: ${[...new Set(presentes)].join(', ')||'—'}\n`;
   });
-  // Pedidos de la semana
-  const pedsSem=[];
-  f.forEach(fecha=>{ (getDia(iso(fecha)).pedidos||[]).forEach(p=>pedsSem.push({fecha:fc(fecha),...p})); });
-  if(pedsSem.length){
-    txt+='\n*📦 Pedidos semana:*\n';
-    pedsSem.forEach(p=>txt+=`• ${p.fecha} ${p.cliente} × ${p.cant}${p.nota?' ('+p.nota+')':''}\n`);
-  }
-  txt+='\n_Generado desde MasterPizza App_';
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
 }
 
 function compartirMesWA(){
-  const mes=parseInt(document.getElementById('mes-sel').value);
-  const anio=parseInt(document.getElementById('anio-sel').value);
+  const mes=parseInt($('mes-sel').value); const anio=parseInt($('anio-sel').value);
   const data=getLocal();
   const fm=Object.keys(data).filter(k=>{ const d=new Date(k+'T00:00:00'); return d.getFullYear()===anio&&d.getMonth()===mes; }).sort();
-  const tp={}; COLABS.forEach(w=>tp[w.id]=0);
-  fm.forEach(f=>COLABS.forEach(w=>{ tp[w.id]+=(parseFloat(data[f].produccion?.[w.id])||0); }));
+  const tp={}; PERSONAS.forEach(p=>tp[p.id]=0);
+  fm.forEach(f=>{ const d=data[f]; TURNOS.forEach(t=>Object.entries(d.turnos?.[t.id]?.produccion||{}).forEach(([pid,v])=>{ if(tp[pid]!==undefined) tp[pid]+=(parseFloat(v)||0); })); });
   const tot=Object.values(tp).reduce((s,v)=>s+v,0);
   let txt=`🍕 *MasterPizza — ${MESES[mes]} ${anio}*\n\n*📊 Producción mensual:*\n`;
-  COLABS.forEach(w=>txt+=`• ${w.nom}: *${tp[w.id]} prepizzas*\n`);
-  txt+=`▶ *TOTAL: ${tot} prepizzas*\n📅 Días trabajados: ${fm.length}\n\n_Generado desde MasterPizza App_`;
+  PERSONAS.forEach(p=>{ if(tp[p.id]>0) txt+=`• ${p.nom}: *${tp[p.id]} prepizzas*\n`; });
+  txt+=`▶ *TOTAL: ${tot} prepizzas*\n📅 Días: ${fm.length}\n\n_MasterPizza App_`;
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
 }
 
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    EXCEL
-═══════════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function makeXLS(bloques,filename){
-  const css=`<style>body,td,th{font-family:Calibri,Arial;font-size:11pt}.logo{font-size:16pt;font-weight:bold;color:#C8102E}.sub{font-size:9pt;color:#888;margin-bottom:10px}.tit{font-size:12pt;font-weight:bold;color:#C8102E;background:#FFF8F0;padding:5px 10px;border-left:4px solid #C8102E;margin:12px 0 4px}.cab{background:#C8102E;color:#fff;font-weight:bold;text-align:center;padding:7px 10px;border:1px solid #9B0B22}.cab-l{background:#C8102E;color:#fff;font-weight:bold;text-align:left;padding:7px 10px;border:1px solid #9B0B22}.c0{background:#fff;text-align:center;padding:5px 9px;border:1px solid #E8E8E8}.c0l{background:#fff;text-align:left;padding:5px 9px;border:1px solid #E8E8E8;font-weight:600}.c1{background:#FFF8F0;text-align:center;padding:5px 9px;border:1px solid #F0E0D0}.c1l{background:#FFF8F0;text-align:left;padding:5px 9px;border:1px solid #F0E0D0;font-weight:600}.tot{background:#FFE8CC;text-align:center;padding:6px 9px;border:2px solid #C8102E;font-weight:bold;color:#9B0B22}.tot-l{background:#FFE8CC;text-align:left;padding:6px 9px;border:2px solid #C8102E;font-weight:bold;color:#9B0B22}.vd{color:#2D8A4E;font-weight:bold}.gr{color:#CCC}.psi{color:#2D8A4E;font-weight:bold}.pno{color:#EF4444}table{border-collapse:collapse;width:100%}</style>`;
-  let body=`<p class="logo">🍕 MasterPizza</p><p class="sub">Cooperativa · Tandil · Turno Tarde · ${new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'})}</p>`;
-  bloques.forEach(({titulo,filas})=>{
+  const css=`<style>body,td,th{font-family:Calibri,Arial;font-size:11pt}.logo{font-size:16pt;font-weight:bold;color:#C8102E}.sub{font-size:9pt;color:#888;margin-bottom:10px}.tit{font-size:12pt;font-weight:bold;color:#C8102E;background:#FFF8F0;padding:5px 10px;border-left:4px solid #C8102E;margin:12px 0 4px}.cab{background:#C8102E;color:#fff;font-weight:bold;text-align:center;padding:7px 10px;border:1px solid #9B0B22}.cab-l{background:#C8102E;color:#fff;font-weight:bold;text-align:left;padding:7px 10px;border:1px solid #9B0B22}.c0{background:#fff;text-align:center;padding:5px 9px;border:1px solid #E8E8E8}.c0l{background:#fff;text-align:left;padding:5px 9px;border:1px solid #E8E8E8;font-weight:600}.c1{background:#FFF8F0;text-align:center;padding:5px 9px;border:1px solid #F0E0D0}.c1l{background:#FFF8F0;text-align:left;padding:5px 9px;border:1px solid #F0E0D0;font-weight:600}.tot{background:#FFE8CC;text-align:center;padding:6px 9px;border:2px solid #C8102E;font-weight:bold;color:#9B0B22}.tot-l{background:#FFE8CC;text-align:left;padding:6px 9px;border:2px solid #C8102E;font-weight:bold;color:#9B0B22}.vd{color:#2D8A4E;font-weight:bold}.gr{color:#CCC}.psi{color:#2D8A4E;font-weight:bold}.pno{color:#EF4444}table{border-collapse:collapse;width:100%}.mh{background:#f59e0b!important;color:white!important}.mmd{background:#3b82f6!important;color:white!important}.mt{background:#C8102E!important;color:white!important}</style>`;
+  let body=`<p class="logo">🍕 MasterPizza</p><p class="sub">Cooperativa · Tandil · ${new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'})}</p>`;
+  bloques.forEach(({titulo,filas,cabClases})=>{
     body+=`<p class="tit">${titulo}</p><table>`;
     filas.forEach((fila,ri)=>{
       body+='<tr>';
       fila.forEach((cel,ci)=>{
-        if(ri===0){ body+=`<td class="${ci===0?'cab-l':'cab'}">${cel}</td>`; return; }
+        if(ri===0){
+          const cls=cabClases?.[ci]||'';
+          body+=`<td class="${ci===0?'cab-l':'cab'} ${cls}">${cel}</td>`; return;
+        }
         const esT=String(fila[0]).toUpperCase().includes('TOTAL');
         if(esT){ body+=`<td class="${ci===0?'tot-l':'tot'}">${cel}</td>`; return; }
         const alt=ri%2===1;
         if(ci===0){ body+=`<td class="${alt?'c1l':'c0l'}">${cel}</td>`; return; }
         if(cel==='P'){ body+=`<td class="${alt?'c1':'c0'} psi">✅ P</td>`; return; }
         if(cel==='A'){ body+=`<td class="${alt?'c1':'c0'} pno">❌ A</td>`; return; }
-        const num=parseFloat(cel); let cls=alt?'c1':'c0',val=cel;
-        if(!isNaN(num)&&typeof cel!=='string'){ if(num===0){cls+=' gr';val='—';}else cls+=' vd'; }
-        body+=`<td class="${cls}">${val}</td>`;
+        const num=parseFloat(cel); let cls2=alt?'c1':'c0',val=cel;
+        if(!isNaN(num)&&typeof cel!=='string'){ if(num===0){cls2+=' gr';val='—';}else cls2+=' vd'; }
+        body+=`<td class="${cls2}">${val}</td>`;
       });
       body+='</tr>';
     });
@@ -980,137 +1004,129 @@ function makeXLS(bloques,filename){
 
 function exportSemXLS(){
   const f=semFechas(semOffset); const dd=f.map(x=>getDia(iso(x)));
+  const dc=['Lun','Mar','Mié','Jue','Vie'];
   const titulo='Semana '+fc(f[0])+' al '+fc(f[4])+' / '+f[0].getFullYear();
-  const dias_c=['Lun','Mar','Mié','Jue','Vie'];
-  const cab=['Colaborador',...dias_c.map((d,i)=>d+' '+fc(f[i])),'TOTAL'];
-  const fp=[cab]; let tD=Array(5).fill(0),tG=0;
-  COLABS.forEach(w=>{ const row=[w.nom]; let rt=0; dd.forEach((d,i)=>{ const v=parseFloat(d.produccion?.[w.id])||0; row.push(v); tD[i]+=v; rt+=v; }); row.push(rt); tG+=rt; fp.push(row); });
-  fp.push(['TOTAL',...tD,tG]);
-  const cabP=['Persona','Rol',...dias_c.map((d,i)=>d+' '+fc(f[i])),'Días pres.'];
-  const fpP=[cabP];
-  PERSONAS.forEach(p=>{ const row=[p.nom,p.rol==='admin'?'Admin':'Colab.']; let cnt=0;
-    dd.forEach(d=>{ const ok=d.presentismo?.[p.id]!==false; row.push(ok?'P':'A'); if(ok)cnt++; }); row.push(cnt); fpP.push(row); });
-  const cabPed=['Fecha','Cliente','Cant.','Nota']; const fpPed=[cabPed];
-  f.forEach(fecha=>{ (getDia(iso(fecha)).pedidos||[]).forEach(p=>fpPed.push([fl(fecha),p.cliente,p.cant,p.nota||''])); });
-  if(fpPed.length===1) fpPed.push(['—','Sin pedidos registrados','','']);
-  makeXLS([{titulo:'🍕 Producción — '+titulo,filas:fp},{titulo:'📍 Presentismo',filas:fpP},{titulo:'📦 Pedidos',filas:fpPed}],'MasterPizza_Semana_'+iso(f[0])+'_'+iso(f[4]));
+  // Producción total por persona
+  const cab=['Persona','Rol',...dc.map((d,i)=>d+' '+fc(f[i])),'TOTAL'];
+  const fp=[cab]; const tp={}; PERSONAS.forEach(p=>tp[p.id]=0); let tD=Array(5).fill(0);
+  PERSONAS.forEach(p=>{ const row=[p.nom,p.rol==='encargada'?'Encargada':'Operario']; let rt=0;
+    dd.forEach((d,i)=>{ let vd=0; TURNOS.forEach(t=>{ vd+=(parseFloat(d.turnos?.[t.id]?.produccion?.[p.id])||0); }); row.push(vd); tD[i]+=vd; rt+=vd; tp[p.id]+=vd; });
+    row.push(rt); fp.push(row); });
+  fp.push(['TOTAL','',...tD,Object.values(tp).reduce((s,v)=>s+v,0)]);
+  // Producción por turno
+  const cabT=['Turno',...dc.map((d,i)=>d+' '+fc(f[i])),'TOTAL'];
+  const fT=[cabT]; const cabClasesT=['','mh','mmd','mt','','',''];
+  TURNOS.forEach(t=>{ const row=[t.ico+' '+t.nom]; let rt=0;
+    dd.forEach(d=>{ const vd=Object.values(d.turnos?.[t.id]?.produccion||{}).reduce((s,v)=>s+(parseFloat(v)||0),0); row.push(vd); rt+=vd; }); row.push(rt); fT.push(row); });
+  // Asistencia
+  const cabA=['Persona','Rol',...dc.map((d,i)=>d+' '+fc(f[i])),'Días'];
+  const fA=[cabA];
+  PERSONAS.forEach(p=>{ const row=[p.nom,p.rol==='encargada'?'Encargada':'Operario']; let cnt=0;
+    dd.forEach(d=>{ let estuvo=false;
+      if(p.rol==='encargada') estuvo=true;
+      else TURNOS.forEach(t=>{ if(d.turnos?.[t.id]?.asistencia?.[p.id]) estuvo=true; });
+      row.push(estuvo?'P':'A'); if(estuvo) cnt++; });
+    row.push(cnt); fA.push(row); });
+  // Pedidos
+  const cabP=['Fecha','Tipo','Cliente','Cant.','Nota']; const fP=[cabP];
+  f.forEach(fecha=>{ (getDia(iso(fecha)).pedidos||[]).forEach(p=>{ const t=TIPOS_PED[p.tipo]||TIPOS_PED.L; fP.push([fl(fecha),t.ico+' '+t.nom,p.cliente,p.cant,p.nota||'']); }); });
+  if(fP.length===1) fP.push(['—','','Sin pedidos','','']);
+  makeXLS([{titulo:'🍕 Producción por persona — '+titulo,filas:fp},{titulo:'🌅 Producción por turno',filas:fT},{titulo:'📍 Asistencia',filas:fA},{titulo:'📦 Pedidos',filas:fP}],'MasterPizza_Semana_'+iso(f[0])+'_'+iso(f[4]));
   snack('📥 Excel descargado!','ok');
 }
 
 function exportMesXLS(){
-  const mes=parseInt(document.getElementById('mes-sel').value);
-  const anio=parseInt(document.getElementById('anio-sel').value);
+  const mes=parseInt($('mes-sel').value); const anio=parseInt($('anio-sel').value);
   const data=getLocal();
   const fm=Object.keys(data).filter(k=>{ const d=new Date(k+'T00:00:00'); return d.getFullYear()===anio&&d.getMonth()===mes; }).sort();
-  const tp={}; COLABS.forEach(w=>tp[w.id]=0);
-  const cab=['Fecha','Día',...COLABS.map(w=>w.nom),'Total']; const filas=[cab];
+  const tp={}; PERSONAS.forEach(p=>tp[p.id]=0);
+  const cab=['Fecha','Día',...PERSONAS.map(p=>p.nom),'Total']; const filas=[cab];
   fm.forEach(f=>{ const d=data[f]; const dt=new Date(f+'T00:00:00'); const row=[fc(dt)+'/'+anio,D_CORTO[dt.getDay()]]; let rt=0;
-    COLABS.forEach(w=>{ const v=parseFloat(d.produccion?.[w.id])||0; row.push(v); tp[w.id]+=v; rt+=v; }); row.push(rt); filas.push(row); });
+    PERSONAS.forEach(p=>{ let vd=0; TURNOS.forEach(t=>{ vd+=(parseFloat(d.turnos?.[t.id]?.produccion?.[p.id])||0); }); row.push(vd); tp[p.id]+=vd; rt+=vd; }); row.push(rt); filas.push(row); });
   const tot=Object.values(tp).reduce((s,v)=>s+v,0);
-  filas.push(['TOTAL MES','',...COLABS.map(w=>tp[w.id]),tot]);
-  const cabR=['Colaborador','Total','%']; const filasR=[cabR];
-  COLABS.forEach(w=>filasR.push([w.nom,tp[w.id],tot>0?(tp[w.id]/tot*100).toFixed(1)+'%':'0%']));
-  filasR.push(['TOTAL',tot,'100%']);
+  filas.push(['TOTAL MES','',...PERSONAS.map(p=>tp[p.id]),tot]);
+  const cabR=['Persona','Rol','Total','%']; const filasR=[cabR];
+  PERSONAS.forEach(p=>filasR.push([p.nom,p.rol==='encargada'?'Encargada':'Operario',tp[p.id],tot>0?(tp[p.id]/tot*100).toFixed(1)+'%':'0%']));
+  filasR.push(['TOTAL','',tot,'100%']);
+  // Asistencia mensual
   const presP={}; PERSONAS.forEach(p=>presP[p.id]=0);
-  fm.forEach(f=>{ const pr=data[f].presentismo||{}; PERSONAS.forEach(p=>{ if(pr[p.id]!==false) presP[p.id]++; }); });
+  fm.forEach(f=>{ const d=data[f]; PERSONAS.forEach(p=>{
+    if(p.rol==='encargada'){ presP[p.id]++; }
+    else { let estuvo=false; TURNOS.forEach(t=>{ if(d.turnos?.[t.id]?.asistencia?.[p.id]) estuvo=true; }); if(estuvo) presP[p.id]++; }
+  }); });
   const cabPM=['Persona','Rol','Días pres.','Total días','% asist.']; const filasPM=[cabPM];
-  PERSONAS.forEach(p=>filasPM.push([p.nom,p.rol==='admin'?'Admin':'Colab.',presP[p.id],fm.length,fm.length>0?(presP[p.id]/fm.length*100).toFixed(0)+'%':'—']));
-  makeXLS([{titulo:'📅 Producción — '+MESES[mes]+' '+anio,filas},{titulo:'📊 Resumen por colaborador',filas:filasR},{titulo:'📍 Asistencia mensual',filas:filasPM}],'MasterPizza_'+MESES[mes]+'_'+anio);
-  snack('📥 Excel mensual descargado!','ok');
+  PERSONAS.forEach(p=>filasPM.push([p.nom,p.rol==='encargada'?'Encargada':'Operario',presP[p.id],fm.length,fm.length>0?(presP[p.id]/fm.length*100).toFixed(0)+'%':'—']));
+  makeXLS([{titulo:'📅 Producción — '+MESES[mes]+' '+anio,filas},{titulo:'📊 Resumen por persona',filas:filasR},{titulo:'📍 Asistencia mensual',filas:filasPM}],'MasterPizza_'+MESES[mes]+'_'+anio);
+  snack('📥 Excel mensual!','ok');
 }
 
 function exportTodoXLS(){
   const data=getLocal(); const fechas=Object.keys(data).sort();
-  if(!fechas.length){ snack('⚠️ Sin datos aún','warn'); return; }
-  const cab=['Fecha','Día',...COLABS.map(w=>w.nom),'Total']; const filas=[cab];
-  const tp={}; COLABS.forEach(w=>tp[w.id]=0); let tg=0;
+  if(!fechas.length){ snack('⚠️ Sin datos','warn'); return; }
+  const cab=['Fecha','Día',...PERSONAS.map(p=>p.nom),'Total']; const filas=[cab];
+  const tp={}; PERSONAS.forEach(p=>tp[p.id]=0); let tg=0;
   fechas.forEach(f=>{ const d=data[f]; const dt=new Date(f+'T00:00:00'); const row=[fl(dt),D_CORTO[dt.getDay()]]; let rt=0;
-    COLABS.forEach(w=>{ const v=parseFloat(d.produccion?.[w.id])||0; row.push(v); tp[w.id]+=v; rt+=v; }); row.push(rt); tg+=rt; filas.push(row); });
-  filas.push(['TOTAL HISTORIAL','',...COLABS.map(w=>tp[w.id]),tg]);
+    PERSONAS.forEach(p=>{ let vd=0; TURNOS.forEach(t=>{ vd+=(parseFloat(d.turnos?.[t.id]?.produccion?.[p.id])||0); }); row.push(vd); tp[p.id]+=vd; rt+=vd; }); row.push(rt); tg+=rt; filas.push(row); });
+  filas.push(['TOTAL HISTORIAL','',...PERSONAS.map(p=>tp[p.id]),tg]);
   makeXLS([{titulo:'📊 Historial Completo',filas}],'MasterPizza_Historial_Completo');
   snack('📊 Historial descargado!','ok');
 }
 
-/* ═══════════════════════════════════════════════
-   BACKUP JSON
-═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   BACKUP
+═══════════════════════════════════════════ */
 function exportBackup(){
-  const d=getLocal();
-  if(!Object.keys(d).length){ snack('⚠️ Sin datos guardados aún','warn'); return; }
-  dl(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),
-    'MasterPizza_Backup_'+new Date().toISOString().slice(0,10)+'.json');
+  const d=getLocal(); if(!Object.keys(d).length){ snack('⚠️ Sin datos','warn'); return; }
+  dl(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),'MasterPizza_Backup_'+new Date().toISOString().slice(0,10)+'.json');
   snack('📤 Copia guardada!','ok');
 }
 function importBackup(e){
   const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=ev=>{ try{
+  const r=new FileReader(); r.onload=ev=>{ try{
     const obj=JSON.parse(ev.target.result);
-    const merged=Object.assign({},obj,getLocal());
-    saveLocal(merged); snack('✅ Datos restaurados — '+Object.keys(merged).length+' días','ok'); renderDia();
-  }catch{ snack('❌ Archivo inválido','err'); }};
-  r.readAsText(f); e.target.value='';
+    const merged=Object.assign({},obj,getLocal()); saveLocal(merged);
+    memCache={}; snack('✅ Restaurado — '+Object.keys(merged).length+' días','ok'); renderDia();
+  }catch{ snack('❌ Archivo inválido','err'); }}; r.readAsText(f); e.target.value='';
 }
 
-/* ═══════════════════════════════════════════════
-   SYNC ESTADO
-═══════════════════════════════════════════════ */
-function updSyncEstado(){
-  const cfg=getCfg();
-  const txt=document.getElementById('sync-estado-txt');
-  if(modoSync && cfg){
-    txt.innerHTML=`🔥 <strong>Firebase activo</strong> — Los datos se sincronizan entre todos los teléfonos en tiempo real.<br><br><span style="color:var(--G)">✅ Proyecto: <strong>${cfg.projectId}</strong></span>`;
-    document.getElementById('sync-titulo').textContent='🔥 Sincronización Firebase';
-  } else {
-    txt.innerHTML=`📵 <strong>Sin sincronización</strong> — Los datos se guardan solo en este teléfono.<br><br>Para sincronizar entre varios teléfonos, configurá Firebase (gratis).`;
-    document.getElementById('sync-titulo').textContent='📵 Sin sincronización';
-  }
-}
-
-/* ═══════════════════════════════════════════════
-   NAV
-═══════════════════════════════════════════════ */
-let vistaActual='dia';
+/* ═══════════════════════════════════════════
+   NAV / SYNC
+═══════════════════════════════════════════ */
 function irA(v){
-  vistaActual=v;
   ['dia','semana','mes','datos'].forEach(n=>{
     document.getElementById('v-'+n).classList.toggle('on',n===v);
     document.getElementById('bn-'+n).classList.toggle('on',n===v);
   });
-  document.getElementById('fab').style.display=v==='dia'?'flex':'none';
+  $('fab').style.display=v==='dia'?'flex':'none';
   if(v==='semana') renderSem();
   if(v==='mes')    renderMes();
   if(v==='datos')  updSyncEstado();
 }
 
-/* ═══════════════════════════════════════════════
-   UTIL
-═══════════════════════════════════════════════ */
-function dl(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
-let _tT;
-function snack(msg,tipo='ok'){
-  const t=document.getElementById('toast'); t.textContent=msg;
-  t.className='toast on '+tipo;
-  clearTimeout(_tT); _tT=setTimeout(()=>t.className='toast',3500);
+function updSyncEstado(){
+  const cfg=getCfg();
+  if(modoSync&&cfg){ $('sync-txt').innerHTML=`🔥 <strong>Firebase activo</strong> — Todos los teléfonos sincronizan en tiempo real.<br><br><span style="color:var(--G)">✅ Proyecto: <strong>${cfg.projectId}</strong></span>`; }
+  else { $('sync-txt').innerHTML=`📵 <strong>Sin sincronización</strong> — Solo este teléfono. Configurá Firebase para sincronizar.`; }
 }
-function showLoading(txt='Cargando…'){ const l=document.getElementById('loading'); l.classList.add('on'); document.getElementById('loading-txt').textContent=txt; }
-function hideLoading(){ document.getElementById('loading').classList.remove('on'); }
 
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════
+   UTIL
+═══════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+function dl(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+let _tT; function snack(msg,tipo='ok'){ const t=$('toast'); t.textContent=msg; t.className='toast on '+tipo; clearTimeout(_tT); _tT=setTimeout(()=>t.className='toast',3500); }
+function showLoad(txt){ $('loading').classList.add('on'); $('loading-txt').textContent=txt; }
+function hideLoad(){ $('loading').classList.remove('on'); }
+
+/* ═══════════════════════════════════════════
    INIT
-═══════════════════════════════════════════════ */
-(function init(){
-  const cfg = getCfg();
-  if(cfg && cfg.apiKey && cfg.dbUrl){
-    showLoading('Conectando…');
-    setTimeout(()=>{
-      initFirebase(cfg); hideLoading(); showLogin();
-    },600);
-  } else {
-    // Primera vez: mostrar setup
-    document.getElementById('setup-screen').classList.add('on');
-  }
+═══════════════════════════════════════════ */
+(function(){
+  const cfg=getCfg();
+  if(cfg&&cfg.apiKey&&cfg.dbUrl){ showLoad('Conectando…'); setTimeout(()=>{ initFirebase(cfg); hideLoad(); showLogin(); },600); }
+  else { $('setup-screen').classList.add('on'); }
 })();
 </script>
 </body>
 </html>
+

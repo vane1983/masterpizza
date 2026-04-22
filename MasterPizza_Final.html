@@ -826,24 +826,28 @@ function selTipo(t){
 
 function _renderPedidos(key,peds){
   const list=$('pedido-list'); list.innerHTML='';
-  // Total del día
+  // Total del dia
   const totPed=peds.reduce((s,p)=>s+(parseInt(p.cant)||0),0);
   const totalBar=document.getElementById('ped-total-dia');
-  if(totalBar) totalBar.innerHTML=totPed>0
-    ?'<div style="background:linear-gradient(135deg,#C8102E,#FF6B35);color:white;border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:.76rem;font-weight:700;opacity:.9;text-transform:uppercase;letter-spacing:.8px">📦 Total pizzas pedidas hoy</span><span style="font-size:1.6rem;font-weight:900">'+totPed+'</span></div>'
-    :'';
-  if(!peds.length){ list.innerHTML='<div class="empty"><div class="ei">📦</div><p>Sin pedidos</p></div>'; return; }
-  peds.forEach((p,i)=>{
+  if(totalBar){
+    totalBar.innerHTML=totPed>0
+      ?'<div style="background:linear-gradient(135deg,#C8102E,#FF6B35);color:white;border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:.76rem;font-weight:700;opacity:.9;text-transform:uppercase;letter-spacing:.8px">Total pizzas pedidas hoy</span><span style="font-size:1.6rem;font-weight:900">'+totPed+'</span></div>'
+      :'';
+  }
+  if(!peds.length){ list.innerHTML='<div class="empty"><div style="font-size:2rem">&#128230;</div><p style="font-size:.8rem;font-weight:600">Sin pedidos</p></div>'; return; }
+  peds.forEach(function(p,i){
     const t=TIPOS_PED[p.tipo]||TIPOS_PED.L;
     const div=document.createElement('div'); div.className='pedido-item';
+    const btn=document.createElement('button'); btn.className='btn-del'; btn.textContent='X';
+    btn.onclick=function(){ eliminarPedido(key,i); };
     div.innerHTML='<div class="ped-tipo '+p.tipo+'"></div>'
       +'<span style="font-size:1.2rem">'+t.ico+'</span>'
       +'<div class="ped-info">'
       +'<div class="ped-cliente">'+p.cliente+'</div>'
-      +'<div class="ped-det">'+t.nom+(p.nota?' · <em>'+p.nota+'</em>':'')+'</div>'
+      +'<div class="ped-det">'+t.nom+(p.nota?' &middot; '+p.nota:'')+'</div>'
       +'</div>'
-      +'<div class="ped-cant">'+p.cant+'</div>'
-      +'<button class="btn-del" onclick="eliminarPedido(''+key+'','+i+')">🗑</button>';
+      +'<div class="ped-cant">'+p.cant+'</div>';
+    div.appendChild(btn);
     list.appendChild(div);
   });
 }

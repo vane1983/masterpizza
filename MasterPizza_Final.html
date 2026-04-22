@@ -1023,8 +1023,13 @@ function exportSemXLS(){
   const fA=[cabA];
   PERSONAS.forEach(p=>{ const row=[p.nom,p.rol==='encargada'?'Encargada':'Operario']; let cnt=0;
     dd.forEach(d=>{ let estuvo=false;
-      if(p.rol==='encargada') estuvo=true;
-      else TURNOS.forEach(t=>{ if(d.turnos?.[t.id]?.asistencia?.[p.id]) estuvo=true; });
+      if(p.rol==='encargada'){
+        // Encargada presente solo si su turno tiene producción registrada ese día
+        const miTurno=TURNOS.find(t=>t.encargada===p.id);
+        if(miTurno){ const prod=d.turnos?.[miTurno.id]?.produccion||{}; estuvo=Object.values(prod).some(v=>(parseFloat(v)||0)>0); }
+      } else {
+        TURNOS.forEach(t=>{ if(d.turnos?.[t.id]?.asistencia?.[p.id]) estuvo=true; });
+      }
       row.push(estuvo?'P':'A'); if(estuvo) cnt++; });
     row.push(cnt); fA.push(row); });
   // Pedidos
@@ -1051,8 +1056,11 @@ function exportMesXLS(){
   // Asistencia mensual
   const presP={}; PERSONAS.forEach(p=>presP[p.id]=0);
   fm.forEach(f=>{ const d=data[f]; PERSONAS.forEach(p=>{
-    if(p.rol==='encargada'){ presP[p.id]++; }
-    else { let estuvo=false; TURNOS.forEach(t=>{ if(d.turnos?.[t.id]?.asistencia?.[p.id]) estuvo=true; }); if(estuvo) presP[p.id]++; }
+    if(p.rol==='encargada'){
+      // Presente solo si su turno tiene producción ese día
+      const miTurno=TURNOS.find(t=>t.encargada===p.id);
+      if(miTurno){ const prod=d.turnos?.[miTurno.id]?.produccion||{}; if(Object.values(prod).some(v=>(parseFloat(v)||0)>0)) presP[p.id]++; }
+    } else { let estuvo=false; TURNOS.forEach(t=>{ if(d.turnos?.[t.id]?.asistencia?.[p.id]) estuvo=true; }); if(estuvo) presP[p.id]++; }
   }); });
   const cabPM=['Persona','Rol','Días pres.','Total días','% asist.']; const filasPM=[cabPM];
   PERSONAS.forEach(p=>filasPM.push([p.nom,p.rol==='encargada'?'Encargada':'Operario',presP[p.id],fm.length,fm.length>0?(presP[p.id]/fm.length*100).toFixed(0)+'%':'—']));
@@ -1129,4 +1137,3 @@ function hideLoad(){ $('loading').classList.remove('on'); }
 </script>
 </body>
 </html>
-

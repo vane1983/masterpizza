@@ -242,12 +242,13 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
 .btn-R{background:linear-gradient(135deg,var(--R2),var(--R));color:white;box-shadow:0 4px 14px rgba(200,16,46,.3)}
 
 /* FAB */
-.fab{position:fixed;bottom:calc(var(--NAV)+14px+var(--SB));right:16px;
+.fab{position:fixed;bottom:calc(var(--NAV)+14px+var(--SB));left:50%;transform:translateX(-50%);
   background:linear-gradient(135deg,var(--G),#3aad65);color:white;border:none;
-  border-radius:17px;padding:12px 18px;font-family:'Nunito',sans-serif;font-size:.92rem;
-  font-weight:900;display:flex;align-items:center;gap:7px;
-  box-shadow:0 6px 20px rgba(45,138,78,.45);cursor:pointer;z-index:80}
-.fab:active{transform:scale(.95)}
+  border-radius:50px;padding:14px 32px;font-family:'Nunito',sans-serif;font-size:1rem;
+  font-weight:900;display:flex;align-items:center;gap:8px;white-space:nowrap;
+  box-shadow:0 6px 24px rgba(45,138,78,.55);cursor:pointer;z-index:80;
+  letter-spacing:.3px;border:2px solid rgba(255,255,255,.3)}
+.fab:active{transform:translateX(-50%) scale(.96)}
 
 /* TOAST */
 .toast{position:fixed;bottom:calc(var(--NAV)+12px+var(--SB));left:12px;right:12px;
@@ -396,7 +397,7 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
           <span id="paso1" style="opacity:.5">① Elegí el turno</span> →
           <span id="paso2" style="opacity:.5">② Marcá asistencia</span> →
           <span id="paso3" style="opacity:.5">③ Ingresá cantidades</span> →
-          <span id="paso4" style="opacity:.5">④ Tocá <strong style="color:#4ade80">✅ Guardar turno</strong></span>
+          <span id="paso4" style="opacity:.5">④ Tocá el botón rojo <strong style="color:#4ade80">💾 GUARDAR TURNO</strong> abajo</span>
         </div>
       </div>
     </div>
@@ -550,7 +551,7 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
 
 </div><!-- /main -->
 
-<button class="fab" id="fab" onclick="guardarTurno()" style="display:none">✅ Guardar turno</button>
+<button class="fab" id="fab" onclick="guardarTurno()" style="display:none;font-size:1rem">💾 GUARDAR TURNO</button>
 
 <nav class="bnav" id="bnav" style="display:none">
   <button class="bnav-btn on" id="bn-dia"    onclick="irA('dia')">   <span class="bnav-ico">📋</span><span class="bnav-txt">Día</span></button>
@@ -746,16 +747,20 @@ function updFechaLabel(){
 }
 
 function renderTurnoTabs(dd){
-  const cont=$('turno-tabs'); cont.innerHTML='';
-  TURNOS.forEach(t=>{
-    const totT=Object.values(dd.turnos?.[t.id]?.produccion||{}).reduce((s,v)=>s+(parseFloat(v)||0),0);
-    const btn=document.createElement('div');
+  var cont=$('turno-tabs'); cont.innerHTML='';
+  TURNOS.forEach(function(t){
+    var tData = (dd.turnos && dd.turnos[t.id]) || {};
+    var asist = tData.asistencia || {};
+    var totT = Object.values(tData.produccion||{}).reduce(function(s,v){return s+(parseFloat(v)||0);},0);
+    var nPresentes = Object.values(asist).filter(function(v){return v===true;}).length;
+    var btn=document.createElement('div');
     btn.className='turno-tab'+(turnoActivo===t.id?' activo on-'+t.cls:'');
-    btn.innerHTML=`<span class="tt-ico">${t.ico}</span>
-      <div class="tt-nom">${t.nom}</div>
-      <div class="tt-enc">${PERSONAS.find(p=>p.id===t.encargada)?.nom}</div>
-      <div class="tt-tot">${totT>0?totT+' 🍕':'—'}</div>`;
-    btn.onclick=()=>{ turnoActivo=t.id; _renderTurnoContent(iso(diaActual()),dd); renderTurnoTabs(dd); };
+    var subInfo = nPresentes>0 ? nPresentes+(nPresentes===1?' persona':' personas') : 'sin cargar';
+    btn.innerHTML='<span class="tt-ico">'+t.ico+'</span>'
+      +'<div class="tt-nom">'+t.nom+'</div>'
+      +'<div class="tt-enc">'+subInfo+'</div>'
+      +'<div class="tt-tot">'+(totT>0?totT+' 🍕':'—')+'</div>';
+    btn.onclick=function(){ turnoActivo=t.id; _renderTurnoContent(iso(diaActual()),dd); renderTurnoTabs(dd); };
     cont.appendChild(btn);
   });
 }
@@ -821,6 +826,7 @@ function _renderTurnoContent(k,dd){
         +'<div class="prod-sub">'+(p.rol==='encargada'?'🔑 Encargada':'🍕 Operario')+' · '+turno.nom+'</div></div>'
         +'<input type="number" id="pv-'+p.id+'" value="'+val+'" min="0" inputmode="numeric" placeholder="0" '
         +(puedeEditar?'':'readonly ')
+        +'oninput="actualizarResumen()" '
         +'style="width:75px;border:2px solid '+borInp+';border-radius:11px;padding:9px 6px;'
         +'font-family:Nunito,sans-serif;font-size:1.15rem;font-weight:900;text-align:center;'
         +'background:'+bgInp+';color:#1F2937;outline:none;-moz-appearance:textfield;flex-shrink:0;">';
@@ -834,11 +840,11 @@ function _renderTurnoContent(k,dd){
 }
 
 function toggleAsist(k,pid){
-  const dd=getDia(k);
+  var dd=getDia(k);
   if(!dd.turnos[turnoActivo].asistencia) dd.turnos[turnoActivo].asistencia={};
-  const actual=dd.turnos[turnoActivo].asistencia[pid];
+  var actual=dd.turnos[turnoActivo].asistencia[pid];
   dd.turnos[turnoActivo].asistencia[pid]=!actual;
-  setDia(k,dd); _renderTurnoContent(k,dd); renderResumenDia(dd);
+  setDia(k,dd); _renderTurnoContent(k,dd); renderTurnoTabs(dd); renderResumenDia(dd);
 }
 
 // steppers removed - manual input
@@ -860,6 +866,13 @@ function guardarTurno(){
   });
   var turnoObj=TURNOS.find(function(t){ return t.id===turnoActivo; });
   snack('✅ Turno '+turnoObj.nom+' guardado!'+(modoSync?' Sincronizado 🔥':''),'ok');
+}
+
+function actualizarResumen(){
+  // Re-render resumen usando datos del cache más inputs actuales
+  var k=iso(diaActual());
+  var dd=getDia(k);
+  renderResumenDia(dd);
 }
 
 function cambDia(delta){
@@ -888,19 +901,31 @@ function irAFecha(isoStr){
    RESUMEN DÍA
 ═══════════════════════════════════════════ */
 function renderResumenDia(dd){
-  const cont=$('dia-resumen'); cont.innerHTML='';
-  let totDia=0;
-  TURNOS.forEach(t=>{
-    const tot=Object.values(dd.turnos?.[t.id]?.produccion||{}).reduce((s,v)=>s+(parseFloat(v)||0),0);
+  var cont=$('dia-resumen'); cont.innerHTML='';
+  var totDia=0;
+  TURNOS.forEach(function(t){
+    // Datos ya guardados
+    var savedProd = (dd.turnos && dd.turnos[t.id] && dd.turnos[t.id].produccion) || {};
+    var tot = Object.values(savedProd).reduce(function(s,v){return s+(parseFloat(v)||0);},0);
+    // Si es el turno activo, también leer inputs vivos (aún no guardados)
+    if(t.id === turnoActivo){
+      var asist = (dd.turnos && dd.turnos[t.id] && dd.turnos[t.id].asistencia) || {};
+      var liveTot = 0; var hayInputs = false;
+      PERSONAS.forEach(function(p){
+        var inp = document.getElementById('pv-'+p.id);
+        if(inp){ hayInputs=true; liveTot += parseFloat(inp.value)||0; }
+      });
+      if(hayInputs) tot = liveTot;
+    }
     totDia+=tot;
-    cont.innerHTML+=`<div class="dr-card ${t.cls}">
-      <div class="dr-ico">${t.ico}</div>
-      <div class="dr-nom">${t.nom}</div>
-      <div class="dr-num">${tot}</div>
-      <div class="dr-lab">prepizzas</div></div>`;
+    cont.innerHTML+='<div class="dr-card '+t.cls+'">'
+      +'<div class="dr-ico">'+t.ico+'</div>'
+      +'<div class="dr-nom">'+t.nom+'</div>'
+      +'<div class="dr-num">'+tot+'</div>'
+      +'<div class="dr-lab">prepizzas</div></div>';
   });
-  $('dia-total-pill').innerHTML=`<div class="pt-l"><div class="pt-lab">🍕 Total del día</div><div class="pt-num">${totDia}</div></div>
-    <div class="pt-r">${D_LARGO[diaActual().getDay()]}<br>${fc(diaActual())}</div>`;
+  $('dia-total-pill').innerHTML='<div class="pt-l"><div class="pt-lab">🍕 Total del día</div><div class="pt-num">'+totDia+'</div></div>'
+    +'<div class="pt-r">'+D_LARGO[diaActual().getDay()]+'<br>'+fc(diaActual())+'</div>';
 }
 
 /* ═══════════════════════════════════════════

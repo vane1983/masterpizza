@@ -845,15 +845,13 @@ function _renderTurnoContent(k,dd){
       var bgInp=puedeEditar?'#FFF8F0':'#f5f5f5';
       var borInp=puedeEditar?'#FFD580':'#eee';
       var div=document.createElement('div'); div.className='prod-item';
-      div.innerHTML='<div class="prod-av" style="background:'+p.color+'">'+p.ini+'</div>'
-        +'<div class="prod-info"><div class="prod-nom">'+p.nom+'</div>'
-        +'<div class="prod-sub">'+(p.rol==='encargada'?'🔑 Encargada':'🍕 Operario')+' · '+turno.nom+'</div></div>'
-        +'<input type="number" id="pv-'+p.id+'" value="'+val+'" min="0" inputmode="numeric" placeholder="0" '
-        +(puedeEditar?'':'readonly ')
-        +'oninput="actualizarResumen()" '
-        +'style="width:75px;border:2px solid '+borInp+';border-radius:11px;padding:9px 6px;'
-        +'font-family:Nunito,sans-serif;font-size:1.15rem;font-weight:900;text-align:center;'
-        +'background:'+bgInp+';color:#1F2937;outline:none;-moz-appearance:textfield;flex-shrink:0;">';
+      var roAttr = puedeEditar ? '' : 'readonly ';
+      var inpStyle = 'width:75px;border:2px solid '+borInp+';border-radius:11px;padding:9px 6px;font-family:Nunito,sans-serif;font-size:1.15rem;font-weight:900;text-align:center;background:'+bgInp+';color:#1F2937;outline:none;-moz-appearance:textfield;flex-shrink:0;';
+      div.innerHTML = '<div class="prod-av" style="background:'+p.color+'">'+p.ini+'</div>'
+        + '<div class="prod-info"><div class="prod-nom">'+p.nom+'</div>'
+        + '<div class="prod-sub">'+(p.rol==='encargada'?'Encargada':'Operario')+' - '+turno.nom+'</div></div>'
+        + '<input type="number" id="pv-'+p.id+'" value="'+val+'" min="0" inputmode="numeric" placeholder="0" '+roAttr+'style="'+inpStyle+'">';
+      if(puedeEditar){ var inp=div.querySelector('input'); if(inp) inp.addEventListener('input',actualizarResumen); }
       pl.appendChild(div);
     });
     $('paso4').style.opacity='1'; $('paso4').style.color='#fbbf24';
@@ -897,35 +895,108 @@ function actualizarResumen(){
   renderResumenDia(dd);
 }
 
-function actualizarEstadoDia(dd){
-  var wrap = $('estado-turnos');
-  var btnCerrar = $('btn-cerrar-dia');
-  if(!wrap) return;
-  var algonoCargado = false;
-  var html = '';
-  TURNOS.forEach(function(t){
-    var prod = (dd.turnos && dd.turnos[t.id] && dd.turnos[t.id].produccion) || {};
-    var asist = (dd.turnos && dd.turnos[t.id] && dd.turnos[t.id].asistencia) || {};
-    var totT = Object.values(prod).reduce(function(s,v){return s+(parseFloat(v)||0);},0);
-    var nP = Object.values(asist).filter(function(v){return v===true;}).length;
-    var guardado = totT > 0;
-    if(guardado) algonoCargado = true;
-    html += '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,'+(guardado?'.15':'.06')+');border-radius:10px;padding:9px 12px">'
-      +'<span style="font-size:1.2rem">'+t.ico+'</span>'
-      +'<div style="flex:1">'
-      +'<div style="color:white;font-size:.82rem;font-weight:800">Turno '+t.nom+'</div>'
-      +'<div style="color:rgba(255,255,255,.65);font-size:.7rem">'+(nP>0?nP+' personas · ':'')+(guardado?totT+' prepizzas guardadas':'Sin guardar aún')+'</div>'
-      +'</div>'
-      +'<span style="font-size:1.1rem">'+(guardado?'✅':'⏳')+'</span>'
-      +'</div>';
-  });
-  wrap.innerHTML = html;
-  if(btnCerrar){
-    btnCerrar.disabled = !algonoCargado;
-    btnCerrar.style.opacity = algonoCargado ? '1' : '.4';
+function guardarTurnoDesdeEstado(tid){
+  turnoActivo = tid;
+  var k = iso(diaActual()); var dd = getDia(k);
+  if(!dd.turnos[tid]) dd.turnos[tid]={asistencia:{},produccion:{}};
+  var asist = dd.turnos[tid].asistencia || {};
+  var presentes = PERSONAS.filter(function(p){ return asist[p.id]===true; });
+  if(presentes.length === 0){
+    var tNomWarn = TURNOS.find(function(t){return t.id===tid;}).nom;
+    snack('Andá al turno '+tNomWarn+' y marca quienes vinieron primero','warn');
+    _renderTurnoContent(k,dd); renderTurnoTabs(dd);
+    window.scrollTo({top:0,behavior:'smooth'});
+    return;
   }
+  if(!dd.turnos[tid].produccion) dd.turnos[tid].produccion={};
+  presentes.forEach(function(p){
+    var inp = document.getElementById('pv-'+p.id);
+    if(inp) dd.turnos[tid].produccion[p.id] = parseFloat(inp.value)||0;
+  });
+  setDia(k,dd);
+  renderResumenDia(dd); renderTurnoTabs(dd); actualizarEstadoDia(dd);
+  var tNom = TURNOS.find(function(t){return t.id===tid;}).nom;
+  snack('Turno '+tNom+' guardado!'+(modoSync?' en Firebase':''),'ok');
 }
 
+function actualizarEstadoDia(dd){
+  var wrap = document.getElementById('estado-turnos');
+  var btnCerrar = document.getElementById('btn-cerrar-dia');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  var algunoGuardado = false;
+
+  TURNOS.forEach(function(t){
+    var prod  = (dd.turnos && dd.turnos[t.id] && dd.turnos[t.id].produccion) || {};
+    var asist = (dd.turnos && dd.turnos[t.id] && dd.turnos[t.id].asistencia) || {};
+    var totT  = Object.values(prod).reduce(function(s,v){return s+(parseFloat(v)||0);},0);
+    var nP    = Object.values(asist).filter(function(v){return v===true;}).length;
+    var guardado = totT > 0;
+    if(guardado) algunoGuardado = true;
+
+    // Contenedor de la fila
+    var fila = document.createElement('div');
+    fila.style.cssText = 'display:flex;align-items:center;gap:10px;border-radius:12px;padding:11px 13px;margin-bottom:0;'
+      + (guardado
+        ? 'background:rgba(74,222,128,.15);border:1.5px solid rgba(74,222,128,.4)'
+        : 'background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12)');
+
+    // Icono turno
+    var ico = document.createElement('span');
+    ico.style.fontSize = '1.3rem';
+    ico.textContent = t.ico;
+    fila.appendChild(ico);
+
+    // Texto info
+    var info = document.createElement('div');
+    info.style.flex = '1';
+    var nomEl = document.createElement('div');
+    nomEl.style.cssText = 'color:white;font-size:.84rem;font-weight:900';
+    nomEl.textContent = t.nom + (guardado ? ' — Guardado' : '');
+    var subEl = document.createElement('div');
+    subEl.style.cssText = 'color:rgba(255,255,255,.6);font-size:.7rem;margin-top:2px';
+    var subTxt = '';
+    if(nP > 0) subTxt += nP + (nP===1?' persona':' personas');
+    if(guardado) subTxt += (subTxt?' — ':'')+totT+' prepizzas';
+    else if(nP===0) subTxt = 'Sin datos — andá al turno arriba';
+    else subTxt += ' — listo para guardar';
+    subEl.textContent = subTxt;
+    info.appendChild(nomEl);
+    info.appendChild(subEl);
+    fila.appendChild(info);
+
+    // Icono estado o botón
+    if(guardado){
+      var ok = document.createElement('span');
+      ok.style.cssText = 'font-size:1.4rem;flex-shrink:0';
+      ok.textContent = '✅';
+      fila.appendChild(ok);
+      // Botón corregir pequeño
+      var btnCorr = document.createElement('button');
+      btnCorr.textContent = 'Corregir';
+      btnCorr.style.cssText = 'background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);'
+        +'border-radius:8px;padding:6px 10px;color:white;font-size:.7rem;font-weight:700;cursor:pointer;flex-shrink:0';
+      (function(tid){ btnCorr.addEventListener('click',function(){ guardarTurnoDesdeEstado(tid); }); })(t.id);
+      fila.appendChild(btnCorr);
+    } else {
+      var btnGuardar = document.createElement('button');
+      btnGuardar.textContent = nP>0 ? 'Guardar' : 'Cargar';
+      btnGuardar.style.cssText = 'background:'+(nP>0?'linear-gradient(135deg,#2D8A4E,#3aad65)':'rgba(255,255,255,.15)')+';'
+        +'border:none;border-radius:10px;padding:10px 16px;color:white;'
+        +'font-family:Nunito,sans-serif;font-size:.82rem;font-weight:900;cursor:pointer;'
+        +'flex-shrink:0;opacity:'+(nP>0?'1':'.5');
+      (function(tid){ btnGuardar.addEventListener('click',function(){ guardarTurnoDesdeEstado(tid); }); })(t.id);
+      fila.appendChild(btnGuardar);
+    }
+    wrap.appendChild(fila);
+  });
+
+  if(btnCerrar){
+    btnCerrar.disabled = !algunoGuardado;
+    btnCerrar.style.opacity = algunoGuardado ? '1' : '.4';
+    btnCerrar.style.cursor  = algunoGuardado ? 'pointer' : 'default';
+  }
+}
 function cerrarDia(){
   var k = iso(diaActual());
   var dd = getDia(k);

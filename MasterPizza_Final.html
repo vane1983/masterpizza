@@ -375,13 +375,30 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
 
   <!-- VISTA: DÍA / TURNO -->
   <div class="vista on" id="v-dia">
+    <!-- NAVEGADOR FECHA CON SALTO RÁPIDO -->
     <div class="fecha-nav">
       <button class="btn-nav" onclick="cambDia(-1)">‹</button>
-      <div class="fn-centro">
+      <div class="fn-centro" onclick="abrirDatePicker()" style="cursor:pointer">
         <div class="fn-fecha" id="fn-fecha">…</div>
         <div class="fn-badge"  id="fn-badge">…</div>
       </div>
       <button class="btn-nav" onclick="cambDia(1)">›</button>
+    </div>
+    <!-- Date picker oculto -->
+    <input type="date" id="date-picker" style="display:none" onchange="irAFecha(this.value)">
+
+    <!-- GUÍA DE PASOS -->
+    <div id="pasos-guide" style="background:linear-gradient(135deg,#1F2937,#374151);border-radius:14px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+      <div style="flex-shrink:0;font-size:1.4rem">📋</div>
+      <div>
+        <div style="color:white;font-size:.82rem;font-weight:900;margin-bottom:3px">¿Cómo cargar un turno?</div>
+        <div style="color:rgba(255,255,255,.75);font-size:.72rem;line-height:1.5">
+          <span id="paso1" style="opacity:.5">① Elegí el turno</span> →
+          <span id="paso2" style="opacity:.5">② Marcá asistencia</span> →
+          <span id="paso3" style="opacity:.5">③ Ingresá cantidades</span> →
+          <span id="paso4" style="opacity:.5">④ Tocá <strong style="color:#4ade80">✅ Guardar turno</strong></span>
+        </div>
+      </div>
     </div>
 
     <!-- Tabs de turno -->
@@ -391,12 +408,16 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
     <div id="turno-header-wrap"></div>
 
     <div class="card" id="card-asist">
-      <div class="card-title">📍 Asistencia en este turno</div>
+      <div class="card-title">📍 Asistencia en este turno
+        <span style="font-size:.68rem;font-weight:600;color:var(--GR);margin-left:4px">Tocá para marcar quien vino</span>
+      </div>
       <div class="asist-grid" id="asist-grid"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">🍕 Producción en este turno</div>
+      <div class="card-title">🍕 Producción en este turno
+        <span style="font-size:.68rem;font-weight:600;color:var(--GR);margin-left:4px">Ingresá la cantidad producida</span>
+      </div>
       <div class="prod-list" id="prod-list"></div>
     </div>
 
@@ -472,15 +493,39 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
 
   <!-- VISTA: DATOS -->
   <div class="vista" id="v-datos">
+    <!-- EXPLICACION CLARA -->
+    <div style="background:linear-gradient(135deg,#1F2937,#374151);border-radius:16px;padding:16px;margin-bottom:12px">
+      <div style="color:white;font-size:.95rem;font-weight:900;margin-bottom:10px">❓ ¿Qué hace cada botón?</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:10px 12px">
+          <div style="color:#4ade80;font-size:.8rem;font-weight:800">✅ Guardar turno (pantalla Día)</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.73rem;margin-top:2px">Es el único botón que usás a diario. Guarda producción y asistencia del turno.</div>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:10px 12px">
+          <div style="color:#fbbf24;font-size:.8rem;font-weight:800">📤 Guardar copia (.json)</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.73rem;margin-top:2px">Descarga todos tus datos en un archivo. Guardalo en Drive o mandalo por WhatsApp. Hacelo una vez por semana como respaldo.</div>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:10px 12px">
+          <div style="color:#60a5fa;font-size:.8rem;font-weight:800">📥 Restaurar copia</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.73rem;margin-top:2px">Solo si cambiás de teléfono o se borró la caché. Cargás el archivo .json y recuperás todo.</div>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:10px 12px">
+          <div style="color:#f87171;font-size:.8rem;font-weight:800">⚙️ Reconfigurar Firebase</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.73rem;margin-top:2px">Solo la primera vez que instalás la app en un teléfono nuevo. No lo toques si ya funciona.</div>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-title" id="sync-titulo">🔥 Sincronización</div>
       <p id="sync-txt" style="font-size:.82rem;color:var(--GR);line-height:1.5;margin-bottom:12px">…</p>
-      <button class="btn btn-OR" onclick="showSetup()">⚙️ Reconfigurar Firebase</button>
+      <button class="btn btn-GR" onclick="showSetup()" style="margin-bottom:0">⚙️ Reconfigurar Firebase (solo si es necesario)</button>
     </div>
     <div class="card">
-      <div class="card-title">💾 Copia de seguridad</div>
+      <div class="card-title">💾 Copia de seguridad semanal</div>
+      <p style="font-size:.8rem;color:var(--GR);margin-bottom:10px">Recomendado: guardá una copia cada viernes.</p>
       <button class="btn btn-OR" onclick="exportBackup()">📤 Guardar copia (.json)</button>
-      <button class="btn btn-B"  onclick="document.getElementById('inp-import').click()">📥 Restaurar copia</button>
+      <button class="btn btn-B"  onclick="document.getElementById('inp-import').click()" style="margin-bottom:0">📥 Restaurar copia (solo si lo necesitás)</button>
       <input type="file" id="inp-import" style="display:none" accept=".json" onchange="importBackup(event)">
     </div>
     <div class="card">
@@ -532,9 +577,9 @@ const PERSONAS = [
 ];
 
 const TURNOS = [
-  {id:'M',  nom:'Mañana',   ico:'🌅', encargada:'guillermina', color:'#f59e0b', cls:'M'},
-  {id:'MD', nom:'Mediodía', ico:'☀️', encargada:'loreley',     color:'#3b82f6', cls:'MD'},
-  {id:'T',  nom:'Tarde',    ico:'🌆', encargada:'silvana',     color:'#C8102E', cls:'T'},
+  {id:'M',  nom:'Mañana',   ico:'🌅', color:'#f59e0b', cls:'M'},
+  {id:'MD', nom:'Mediodía', ico:'☀️', color:'#3b82f6', cls:'MD'},
+  {id:'T',  nom:'Tarde',    ico:'🌆', color:'#C8102E', cls:'T'},
 ];
 
 const OPERARIOS   = PERSONAS.filter(p=>p.rol==='operario');
@@ -692,7 +737,12 @@ function diaActual(){ return hoyMas(diaOffset); }
 function updFechaLabel(){
   const d=diaActual();
   $('fn-fecha').textContent=D_LARGO[d.getDay()]+' '+fc(d)+'/'+d.getFullYear();
-  $('fn-badge').textContent=diaOffset===0?'🟢 Hoy':diaOffset===-1?'⬅️ Ayer':diaOffset===1?'➡️ Mañana':(diaOffset<0?'Hace '+Math.abs(diaOffset)+' días':'En '+diaOffset+' días');
+  var badge = diaOffset===0 ? '🟢 Hoy — tocá para ir a otra fecha'
+    : diaOffset===-1 ? '⬅️ Ayer'
+    : diaOffset===1  ? '➡️ Mañana'
+    : (diaOffset<0   ? '📅 Hace '+Math.abs(diaOffset)+' días — tocá para cambiar fecha'
+                     : '📅 En '+diaOffset+' días');
+  $('fn-badge').textContent=badge;
 }
 
 function renderTurnoTabs(dd){
@@ -719,56 +769,64 @@ function renderDia(){
 
 function _renderTurnoContent(k,dd){
   if(!dd.turnos) dd.turnos={M:{},MD:{},T:{}};
-  ['M','MD','T'].forEach(t=>{ if(!dd.turnos[t]) dd.turnos[t]={asistencia:{},produccion:{}}; });
-  const turno=TURNOS.find(t=>t.id===turnoActivo);
-  const tData=dd.turnos[turnoActivo];
-  const asist=tData.asistencia||{};
-  const prod=tData.produccion||{};
-  const esEncargada=usuario?.rol==='encargada';
+  ['M','MD','T'].forEach(function(t){ if(!dd.turnos[t]) dd.turnos[t]={asistencia:{},produccion:{}}; });
+  var turno=TURNOS.find(function(t){ return t.id===turnoActivo; });
+  var tData=dd.turnos[turnoActivo];
+  var asist=tData.asistencia||{};
+  var prod=tData.produccion||{};
+  var esEncargada=usuario&&usuario.rol==='encargada';
 
-  // Header turno
-  $('turno-header-wrap').innerHTML=`<div class="turno-header ${turno.cls}">
-    <span class="th-ico">${turno.ico}</span>
-    <div class="th-txt"><div class="th-nom">Turno ${turno.nom}</div>
-    <div class="th-enc">Encargada: ${PERSONAS.find(p=>p.id===turno.encargada)?.nom}</div></div></div>`;
+  // Header turno — sin encargada fija
+  $('turno-header-wrap').innerHTML='<div class="turno-header '+turno.cls+'">'
+    +'<span class="th-ico">'+turno.ico+'</span>'
+    +'<div class="th-txt"><div class="th-nom">Turno '+turno.nom+'</div>'
+    +'<div class="th-enc">Marca quiénes trabajaron este turno</div></div></div>';
 
-  // ASISTENCIA — TODAS las personas se pueden marcar en cualquier turno
-  const ag=$('asist-grid'); ag.innerHTML='';
-  const enc=PERSONAS.find(p=>p.id===turno.encargada);
-  PERSONAS.forEach(p=>{
-    const esEncDeTurno = p.id === turno.encargada;
-    const presente = esEncDeTurno ? true : (asist[p.id]===true);
-    const chip=document.createElement('div');
-    chip.className='asist-chip'+(presente?' presente':' ausente')+(esEncDeTurno||!esEncargada?' fijo':'');
+  // Actualizar pasos guía
+  $('paso1').style.opacity='1'; $('paso1').style.fontWeight='800'; $('paso1').style.color='#fbbf24';
+  var hayAsist=Object.values(asist).some(function(v){return v===true;});
+  if(hayAsist){ $('paso2').style.opacity='1'; $('paso2').style.color='#4ade80'; }
+  else { $('paso2').style.opacity='1'; $('paso2').style.fontWeight='900'; $('paso2').style.color='#fbbf24'; }
+
+  // ASISTENCIA — TODAS las personas, nadie fijo por defecto
+  var ag=$('asist-grid'); ag.innerHTML='';
+  PERSONAS.forEach(function(p){
+    var presente = asist[p.id]===true;
+    var chip=document.createElement('div');
+    chip.className='asist-chip'+(presente?' presente':' ausente')+(esEncargada?'':' fijo');
     chip.innerHTML='<div class="asist-av" style="background:'+p.color+'">'+p.ini+'</div>'
       +'<div><div class="asist-nom">'+p.nom+'</div>'
-      +'<div class="asist-rol">'+(esEncDeTurno?'🔑 Enc. turno':p.rol==='encargada'?'🔑 Encargada':'🍕 Operario')+'</div></div>'
+      +'<div class="asist-rol">'+(p.rol==='encargada'?'🔑 Encargada':'🍕 Operario')+'</div></div>'
       +'<span class="asist-ico">'+(presente?'✅':'➕')+'</span>';
-    if(esEncargada && !esEncDeTurno) chip.onclick=()=>toggleAsist(k,p.id);
+    if(esEncargada) chip.onclick=function(){ toggleAsist(k,p.id); };
     ag.appendChild(chip);
   });
 
-  // PRODUCCIÓN — encargada del turno + todos con asistencia marcada
-  const pl=$('prod-list'); pl.innerHTML='';
-  const todosEnTurno=[enc,...PERSONAS.filter(p=>p.id!==turno.encargada&&asist[p.id]===true)];
-  todosEnTurno.forEach(p=>{
-    const val=prod[p.id]||'';
-    const puedeEditar=esEncargada||(usuario?.id===p.id);
-    const bgInp=puedeEditar?'#FFF8F0':'#f5f5f5';
-    const borInp=puedeEditar?'#FFD580':'#eee';
-    const div=document.createElement('div'); div.className='prod-item';
-    div.innerHTML='<div class="prod-av" style="background:'+p.color+'">'+p.ini+'</div>'
-      +'<div class="prod-info"><div class="prod-nom">'+p.nom+'</div>'
-      +'<div class="prod-sub">'+(p.id===turno.encargada?'🔑 Enc.':'🍕 '+p.rol)+' · '+turno.nom+'</div></div>'
-      +'<input type="number" id="pv-'+p.id+'" value="'+val+'" min="0" inputmode="numeric" placeholder="0" '
-      +(puedeEditar?'':'readonly ')
-      +'style="width:75px;border:2px solid '+borInp+';border-radius:11px;padding:9px 6px;'
-      +'font-family:Nunito,sans-serif;font-size:1.15rem;font-weight:900;text-align:center;'
-      +'background:'+bgInp+';color:#1F2937;outline:none;-moz-appearance:textfield;flex-shrink:0;">';
-    pl.appendChild(div);
-  });
-  if(todosEnTurno.length===0){
-    pl.insertAdjacentHTML('beforeend','<div class="empty"><div class="ei">👆</div><p>Marcá asistencia para cargar producción</p></div>');
+  // PRODUCCIÓN — solo los que tienen asistencia marcada
+  var pl=$('prod-list'); pl.innerHTML='';
+  var presentes=PERSONAS.filter(function(p){ return asist[p.id]===true; });
+  if(presentes.length===0){
+    pl.innerHTML='<div class="empty"><div style="font-size:2rem">👆</div><p style="font-size:.82rem;font-weight:700">Primero marcá quiénes vinieron arriba</p></div>';
+  } else {
+    // Actualizar paso guía
+    $('paso3').style.opacity='1'; $('paso3').style.color='#fbbf24'; $('paso3').style.fontWeight='900';
+    presentes.forEach(function(p){
+      var val=prod[p.id]||'';
+      var puedeEditar=esEncargada||(usuario&&usuario.id===p.id);
+      var bgInp=puedeEditar?'#FFF8F0':'#f5f5f5';
+      var borInp=puedeEditar?'#FFD580':'#eee';
+      var div=document.createElement('div'); div.className='prod-item';
+      div.innerHTML='<div class="prod-av" style="background:'+p.color+'">'+p.ini+'</div>'
+        +'<div class="prod-info"><div class="prod-nom">'+p.nom+'</div>'
+        +'<div class="prod-sub">'+(p.rol==='encargada'?'🔑 Encargada':'🍕 Operario')+' · '+turno.nom+'</div></div>'
+        +'<input type="number" id="pv-'+p.id+'" value="'+val+'" min="0" inputmode="numeric" placeholder="0" '
+        +(puedeEditar?'':'readonly ')
+        +'style="width:75px;border:2px solid '+borInp+';border-radius:11px;padding:9px 6px;'
+        +'font-family:Nunito,sans-serif;font-size:1.15rem;font-weight:900;text-align:center;'
+        +'background:'+bgInp+';color:#1F2937;outline:none;-moz-appearance:textfield;flex-shrink:0;">';
+      pl.appendChild(div);
+    });
+    $('paso4').style.opacity='1'; $('paso4').style.color='#fbbf24';
   }
 
   // Pedidos
@@ -786,19 +844,45 @@ function toggleAsist(k,pid){
 // steppers removed - manual input
 
 function guardarTurno(){
-  const k=iso(diaActual()); const dd=getDia(k);
+  var k=iso(diaActual()); var dd=getDia(k);
   if(!dd.turnos[turnoActivo].produccion) dd.turnos[turnoActivo].produccion={};
-  const turno=TURNOS.find(t=>t.id===turnoActivo);
-  const enc=PERSONAS.find(p=>p.id===turno.encargada);
-  const asist=dd.turnos[turnoActivo].asistencia||{};
-  const todosEnTurno=[enc,...OPERARIOS.filter(op=>asist[op.id]===true)];
-  todosEnTurno.forEach(p=>{ const inp=document.getElementById('pv-'+p.id); if(inp) dd.turnos[turnoActivo].produccion[p.id]=parseFloat(inp.value)||0; });
+  var asist=dd.turnos[turnoActivo].asistencia||{};
+  var presentes=PERSONAS.filter(function(p){ return asist[p.id]===true; });
+  if(presentes.length===0){ snack('⚠️ Primero marcá quiénes trabajaron este turno','warn'); return; }
+  presentes.forEach(function(p){
+    var inp=document.getElementById('pv-'+p.id);
+    if(inp) dd.turnos[turnoActivo].produccion[p.id]=parseFloat(inp.value)||0;
+  });
   setDia(k,dd); renderResumenDia(dd); renderTurnoTabs(dd);
-  const turnoObj=TURNOS.find(t=>t.id===turnoActivo);
-  snack('✅ Turno '+turnoObj.nom+' guardado'+(modoSync?' 🔥':''),'ok');
+  // Marcar pasos como completos
+  ['paso1','paso2','paso3','paso4'].forEach(function(id){
+    var el=$(id); if(el){ el.style.color='#4ade80'; el.style.opacity='1'; }
+  });
+  var turnoObj=TURNOS.find(function(t){ return t.id===turnoActivo; });
+  snack('✅ Turno '+turnoObj.nom+' guardado!'+(modoSync?' Sincronizado 🔥':''),'ok');
 }
 
-function cambDia(d){ diaOffset+=d; renderDia(); }
+function cambDia(delta){
+  diaOffset += delta;
+  renderDia();
+}
+
+function abrirDatePicker(){
+  var dp=$('date-picker');
+  // Set current date as value
+  var d=diaActual();
+  dp.value=iso(d);
+  dp.click();
+}
+
+function irAFecha(isoStr){
+  if(!isoStr) return;
+  var target=new Date(isoStr+'T00:00:00');
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var diff=Math.round((target-hoy)/(1000*60*60*24));
+  diaOffset=diff;
+  renderDia();
+}
 
 /* ═══════════════════════════════════════════
    RESUMEN DÍA
@@ -1012,13 +1096,17 @@ function prodTurnoDia(diaObj, turnoId){
 }
 
 function estuvoPresente(diaObj, persona){
-  if(persona.rol === 'encargada'){
-    const miTurno = TURNOS.find(t => t.encargada === persona.id);
-    if(!miTurno) return false;
-    const prod = diaObj.turnos?.[miTurno.id]?.produccion || {};
-    return Object.values(prod).some(v => (parseFloat(v)||0) > 0);
-  }
-  return TURNOS.some(t => diaObj.turnos?.[t.id]?.asistencia?.[persona.id] === true);
+  // Cualquier persona: estuvo si tiene asistencia en algún turno
+  // O si tiene producción cargada en algún turno
+  var porAsist = TURNOS.some(function(t){
+    return diaObj.turnos && diaObj.turnos[t.id] && diaObj.turnos[t.id].asistencia && diaObj.turnos[t.id].asistencia[persona.id]===true;
+  });
+  if(porAsist) return true;
+  // Fallback: tiene producción registrada en algún turno
+  return TURNOS.some(function(t){
+    var prod = (diaObj.turnos && diaObj.turnos[t.id] && diaObj.turnos[t.id].produccion) || {};
+    return (parseFloat(prod[persona.id])||0) > 0;
+  });
 }
 
 /* ═══════════════════════════════════════════

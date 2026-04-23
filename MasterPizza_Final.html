@@ -428,6 +428,10 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
     <div class="dia-resumen" id="dia-resumen"></div>
     <div class="pill-total" id="dia-total-pill"></div>
 
+    <div style="margin-top:4px">
+      <button class="btn btn-B" onclick="exportDiaXLS()" style="margin-bottom:0">📥 Descargar reporte del día (Excel)</button>
+    </div>
+
     <div style="height:80px"></div>
   </div>
 
@@ -975,111 +979,359 @@ function compartirMesWA(){
 /* ═══════════════════════════════════════════
    EXCEL
 ═══════════════════════════════════════════ */
-function makeXLS(bloques,filename){
-  const css=`<style>body,td,th{font-family:Calibri,Arial;font-size:11pt}.logo{font-size:16pt;font-weight:bold;color:#C8102E}.sub{font-size:9pt;color:#888;margin-bottom:10px}.tit{font-size:12pt;font-weight:bold;color:#C8102E;background:#FFF8F0;padding:5px 10px;border-left:4px solid #C8102E;margin:12px 0 4px}.cab{background:#C8102E;color:#fff;font-weight:bold;text-align:center;padding:7px 10px;border:1px solid #9B0B22}.cab-l{background:#C8102E;color:#fff;font-weight:bold;text-align:left;padding:7px 10px;border:1px solid #9B0B22}.c0{background:#fff;text-align:center;padding:5px 9px;border:1px solid #E8E8E8}.c0l{background:#fff;text-align:left;padding:5px 9px;border:1px solid #E8E8E8;font-weight:600}.c1{background:#FFF8F0;text-align:center;padding:5px 9px;border:1px solid #F0E0D0}.c1l{background:#FFF8F0;text-align:left;padding:5px 9px;border:1px solid #F0E0D0;font-weight:600}.tot{background:#FFE8CC;text-align:center;padding:6px 9px;border:2px solid #C8102E;font-weight:bold;color:#9B0B22}.tot-l{background:#FFE8CC;text-align:left;padding:6px 9px;border:2px solid #C8102E;font-weight:bold;color:#9B0B22}.vd{color:#2D8A4E;font-weight:bold}.gr{color:#CCC}.psi{color:#2D8A4E;font-weight:bold}.pno{color:#EF4444}table{border-collapse:collapse;width:100%}.mh{background:#f59e0b!important;color:white!important}.mmd{background:#3b82f6!important;color:white!important}.mt{background:#C8102E!important;color:white!important}</style>`;
-  let body=`<p class="logo">🍕 MasterPizza</p><p class="sub">Cooperativa · Tandil · ${new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'})}</p>`;
-  bloques.forEach(({titulo,filas,cabClases})=>{
-    body+=`<p class="tit">${titulo}</p><table>`;
-    filas.forEach((fila,ri)=>{
-      body+='<tr>';
-      fila.forEach((cel,ci)=>{
-        if(ri===0){
-          const cls=cabClases?.[ci]||'';
-          body+=`<td class="${ci===0?'cab-l':'cab'} ${cls}">${cel}</td>`; return;
-        }
-        const esT=String(fila[0]).toUpperCase().includes('TOTAL');
-        if(esT){ body+=`<td class="${ci===0?'tot-l':'tot'}">${cel}</td>`; return; }
-        const alt=ri%2===1;
-        if(ci===0){ body+=`<td class="${alt?'c1l':'c0l'}">${cel}</td>`; return; }
-        if(cel==='P'){ body+=`<td class="${alt?'c1':'c0'} psi">✅ P</td>`; return; }
-        if(cel==='A'){ body+=`<td class="${alt?'c1':'c0'} pno">❌ A</td>`; return; }
-        const num=parseFloat(cel); let cls2=alt?'c1':'c0',val=cel;
-        if(!isNaN(num)&&typeof cel!=='string'){ if(num===0){cls2+=' gr';val='—';}else cls2+=' vd'; }
-        body+=`<td class="${cls2}">${val}</td>`;
-      });
-      body+='</tr>';
-    });
-    body+='</table><br>';
+/* ═══════════════════════════════════════════
+   DATOS COMBINADOS (local + cache Firebase)
+═══════════════════════════════════════════ */
+function getAllData(){
+  // Merge local storage con memCache (Firebase ya sincronizo al cache)
+  const loc = getLocal();
+  const combined = Object.assign({}, loc);
+  Object.keys(memCache).forEach(k => { combined[k] = memCache[k]; });
+  return combined;
+}
+
+function getDiaData(isoStr){
+  // Prioridad: memCache > local > vacío
+  if(memCache[isoStr]) return JSON.parse(JSON.stringify(memCache[isoStr]));
+  const loc = getLocal();
+  if(loc[isoStr]) return JSON.parse(JSON.stringify(loc[isoStr]));
+  return {turnos:{M:{asistencia:{},produccion:{}},MD:{asistencia:{},produccion:{}},T:{asistencia:{},produccion:{}}},pedidos:[]};
+}
+
+function prodPersonaDia(diaObj, personaId){
+  let total = 0;
+  TURNOS.forEach(t => {
+    total += parseFloat(diaObj.turnos?.[t.id]?.produccion?.[personaId]) || 0;
   });
-  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8">${css}</head><body>${body}</body></html>`;
-  dl(new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'}),filename+'.xls');
+  return total;
 }
 
-function exportSemXLS(){
-  const f=semFechas(semOffset); const dd=f.map(x=>getDia(iso(x)));
-  const dc=['Lun','Mar','Mié','Jue','Vie'];
-  const titulo='Semana '+fc(f[0])+' al '+fc(f[4])+' / '+f[0].getFullYear();
-  // Producción total por persona
-  const cab=['Persona','Rol',...dc.map((d,i)=>d+' '+fc(f[i])),'TOTAL'];
-  const fp=[cab]; const tp={}; PERSONAS.forEach(p=>tp[p.id]=0); let tD=Array(5).fill(0);
-  PERSONAS.forEach(p=>{ const row=[p.nom,p.rol==='encargada'?'Encargada':'Operario']; let rt=0;
-    dd.forEach((d,i)=>{ let vd=0; TURNOS.forEach(t=>{ vd+=(parseFloat(d.turnos?.[t.id]?.produccion?.[p.id])||0); }); row.push(vd); tD[i]+=vd; rt+=vd; tp[p.id]+=vd; });
-    row.push(rt); fp.push(row); });
-  fp.push(['TOTAL','',...tD,Object.values(tp).reduce((s,v)=>s+v,0)]);
-  // Producción por turno
-  const cabT=['Turno',...dc.map((d,i)=>d+' '+fc(f[i])),'TOTAL'];
-  const fT=[cabT]; const cabClasesT=['','mh','mmd','mt','','',''];
-  TURNOS.forEach(t=>{ const row=[t.ico+' '+t.nom]; let rt=0;
-    dd.forEach(d=>{ const vd=Object.values(d.turnos?.[t.id]?.produccion||{}).reduce((s,v)=>s+(parseFloat(v)||0),0); row.push(vd); rt+=vd; }); row.push(rt); fT.push(row); });
-  // Asistencia
-  const cabA=['Persona','Rol',...dc.map((d,i)=>d+' '+fc(f[i])),'Días'];
-  const fA=[cabA];
-  PERSONAS.forEach(p=>{ const row=[p.nom,p.rol==='encargada'?'Encargada':'Operario']; let cnt=0;
-    dd.forEach(d=>{ let estuvo=false;
-      if(p.rol==='encargada'){
-        // Encargada presente solo si su turno tiene producción registrada ese día
-        const miTurno=TURNOS.find(t=>t.encargada===p.id);
-        if(miTurno){ const prod=d.turnos?.[miTurno.id]?.produccion||{}; estuvo=Object.values(prod).some(v=>(parseFloat(v)||0)>0); }
-      } else {
-        TURNOS.forEach(t=>{ if(d.turnos?.[t.id]?.asistencia?.[p.id]) estuvo=true; });
+function prodTurnoDia(diaObj, turnoId){
+  return Object.values(diaObj.turnos?.[turnoId]?.produccion || {})
+    .reduce((s,v) => s + (parseFloat(v)||0), 0);
+}
+
+function estuvoPresente(diaObj, persona){
+  if(persona.rol === 'encargada'){
+    const miTurno = TURNOS.find(t => t.encargada === persona.id);
+    if(!miTurno) return false;
+    const prod = diaObj.turnos?.[miTurno.id]?.produccion || {};
+    return Object.values(prod).some(v => (parseFloat(v)||0) > 0);
+  }
+  return TURNOS.some(t => diaObj.turnos?.[t.id]?.asistencia?.[persona.id] === true);
+}
+
+/* ═══════════════════════════════════════════
+   EXCEL ENGINE
+═══════════════════════════════════════════ */
+function makeXLS(bloques, filename){
+  const css = '<style>'
+    +'body,td,th{font-family:Calibri,Arial,sans-serif;font-size:11pt}'
+    +'.logo{font-size:18pt;font-weight:bold;color:#C8102E;margin-bottom:2px}'
+    +'.sub{font-size:9pt;color:#888;margin-bottom:14px}'
+    +'.tit{font-size:12pt;font-weight:bold;color:#C8102E;background:#FFF8F0;'
+    +'padding:6px 12px;border-left:5px solid #C8102E;margin:16px 0 4px}'
+    +'.cab{background:#C8102E;color:#fff;font-weight:bold;text-align:center;'
+    +'padding:8px 12px;border:1px solid #9B0B22;font-size:10pt}'
+    +'.cab-l{background:#C8102E;color:#fff;font-weight:bold;text-align:left;'
+    +'padding:8px 12px;border:1px solid #9B0B22;font-size:10pt}'
+    +'.cab-M{background:#f59e0b!important;color:#fff!important;font-weight:bold}'
+    +'.cab-MD{background:#3b82f6!important;color:#fff!important;font-weight:bold}'
+    +'.cab-T{background:#C8102E!important;color:#fff!important;font-weight:bold}'
+    +'.c0{background:#fff;text-align:center;padding:6px 10px;border:1px solid #E8E8E8}'
+    +'.c0l{background:#fff;text-align:left;padding:6px 10px;border:1px solid #E8E8E8;font-weight:600}'
+    +'.c1{background:#FFF8F0;text-align:center;padding:6px 10px;border:1px solid #F0E0D0}'
+    +'.c1l{background:#FFF8F0;text-align:left;padding:6px 10px;border:1px solid #F0E0D0;font-weight:600}'
+    +'.tot{background:#FFE8CC;text-align:center;padding:7px 10px;border:2px solid #C8102E;font-weight:bold;color:#9B0B22;font-size:11pt}'
+    +'.tot-l{background:#FFE8CC;text-align:left;padding:7px 10px;border:2px solid #C8102E;font-weight:bold;color:#9B0B22;font-size:11pt}'
+    +'.vd{color:#2D8A4E;font-weight:bold}'
+    +'.gr{color:#CCCCCC}'
+    +'.psi{background:#F0FDF4!important;color:#2D8A4E;font-weight:bold}'
+    +'.pno{background:#FFF1F2!important;color:#EF4444}'
+    +'table{border-collapse:collapse;width:100%;margin-bottom:8px}'
+    +'</style>';
+
+  let body = '<p class="logo">MasterPizza</p>'
+    +'<p class="sub">Cooperativa de Produccion · Tandil · '
+    +'Generado: '+new Date().toLocaleDateString('es-AR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})+'</p>';
+
+  bloques.forEach(function(bloque){
+    var titulo = bloque.titulo;
+    var filas  = bloque.filas;
+    var colStyles = bloque.colStyles || [];
+    body += '<p class="tit">'+titulo+'</p><table>';
+    filas.forEach(function(fila, ri){
+      body += '<tr>';
+      fila.forEach(function(cel, ci){
+        var extraCls = colStyles[ci] || '';
+        // Header row
+        if(ri === 0){
+          body += '<td class="'+(ci===0?'cab-l':'cab')+' '+extraCls+'">'+cel+'</td>';
+          return;
+        }
+        // Total row
+        var esTotal = String(fila[0]).toUpperCase().indexOf('TOTAL') >= 0;
+        if(esTotal){
+          body += '<td class="'+(ci===0?'tot-l':'tot')+'">'+cel+'</td>';
+          return;
+        }
+        var alt = (ri % 2 === 1);
+        // First col = label
+        if(ci === 0){
+          body += '<td class="'+(alt?'c1l':'c0l')+'">'+cel+'</td>';
+          return;
+        }
+        // Asistencia P/A
+        if(cel === 'P'){ body += '<td class="'+(alt?'c1':'c0')+' psi">P</td>'; return; }
+        if(cel === 'A'){ body += '<td class="'+(alt?'c1':'c0')+' pno">A</td>'; return; }
+        // Numbers
+        var num = (typeof cel === 'number') ? cel : parseFloat(cel);
+        var cls = alt ? 'c1' : 'c0';
+        var val = cel;
+        if(!isNaN(num) && typeof cel === 'number'){
+          if(num === 0){ cls += ' gr'; val = '&mdash;'; }
+          else { cls += ' vd'; }
+        }
+        body += '<td class="'+cls+'">'+val+'</td>';
+      });
+      body += '</tr>';
+    });
+    body += '</table>';
+  });
+
+  var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office"'
+    +' xmlns:x="urn:schemas-microsoft-com:office:excel"'
+    +' xmlns="http://www.w3.org/TR/REC-html40">'
+    +'<head><meta charset="UTF-8">'+css+'</head>'
+    +'<body>'+body+'</body></html>';
+  dl(new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'}), filename+'.xls');
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT DIARIO
+═══════════════════════════════════════════ */
+function exportDiaXLS(){
+  var d = diaActual();
+  var k = iso(d);
+  var dd = getDiaData(k);
+  var titulo = 'Reporte Diario — '+D_LARGO[d.getDay()]+' '+fc(d)+'/'+d.getFullYear();
+
+  // PRODUCCION POR TURNO Y PERSONA
+  var fProd = [['Turno','Persona','Rol','Prepizzas']];
+  TURNOS.forEach(function(turno){
+    var prod = dd.turnos?.[turno.id]?.produccion || {};
+    var asist = dd.turnos?.[turno.id]?.asistencia || {};
+    var enc = PERSONAS.find(function(p){ return p.id === turno.encargada; });
+    // Encargada del turno
+    var vEnc = parseFloat(prod[enc.id]) || 0;
+    fProd.push([turno.ico+' '+turno.nom, enc.nom, 'Encargada', vEnc]);
+    // Personas con asistencia en este turno
+    PERSONAS.filter(function(p){ return p.id !== turno.encargada && asist[p.id] === true; })
+      .forEach(function(p){
+        fProd.push(['', p.nom, p.rol==='encargada'?'Encargada':'Operario', parseFloat(prod[p.id])||0]);
+      });
+  });
+  // Total del dia
+  var totDia = PERSONAS.reduce(function(s,p){ return s + prodPersonaDia(dd,p.id); }, 0);
+  fProd.push(['TOTAL DIA','','', totDia]);
+
+  // ASISTENCIA POR TURNO
+  var fAsist = [['Turno','Persona','Rol','Presente']];
+  TURNOS.forEach(function(turno){
+    var asist = dd.turnos?.[turno.id]?.asistencia || {};
+    PERSONAS.forEach(function(p){
+      var esFijoDeTurno = p.id === turno.encargada;
+      var presente = esFijoDeTurno ? (prodPersonaDia(dd,p.id)>0) : (asist[p.id]===true);
+      if(presente || esFijoDeTurno){
+        fAsist.push([turno.ico+' '+turno.nom, p.nom, p.rol==='encargada'?'Encargada':'Operario', presente?'P':'A']);
       }
-      row.push(estuvo?'P':'A'); if(estuvo) cnt++; });
-    row.push(cnt); fA.push(row); });
-  // Pedidos
-  const cabP=['Fecha','Tipo','Cliente','Cant.','Nota']; const fP=[cabP];
-  f.forEach(fecha=>{ (getDia(iso(fecha)).pedidos||[]).forEach(p=>{ const t=TIPOS_PED[p.tipo]||TIPOS_PED.L; fP.push([fl(fecha),t.ico+' '+t.nom,p.cliente,p.cant,p.nota||'']); }); });
-  if(fP.length===1) fP.push(['—','','Sin pedidos','','']);
-  makeXLS([{titulo:'🍕 Producción por persona — '+titulo,filas:fp},{titulo:'🌅 Producción por turno',filas:fT},{titulo:'📍 Asistencia',filas:fA},{titulo:'📦 Pedidos',filas:fP}],'MasterPizza_Semana_'+iso(f[0])+'_'+iso(f[4]));
-  snack('📥 Excel descargado!','ok');
+    });
+  });
+
+  // PEDIDOS DEL DIA
+  var peds = dd.pedidos || [];
+  var totPed = peds.reduce(function(s,p){ return s+(parseInt(p.cant)||0); }, 0);
+  var fPed = [['Tipo','Cliente / Descripcion','Cant. Pizzas','Asignacion']];
+  if(peds.length){
+    peds.forEach(function(p){
+      var t = TIPOS_PED[p.tipo] || TIPOS_PED.L;
+      fPed.push([t.ico+' '+t.nom, p.cliente, p.cant, p.nota||'']);
+    });
+    fPed.push(['TOTAL PEDIDOS','', totPed, '']);
+  } else {
+    fPed.push(['Sin pedidos','','','']);
+  }
+
+  makeXLS([
+    {titulo:'🍕 Produccion por persona — '+titulo, filas:fProd},
+    {titulo:'📍 Asistencia — '+titulo,             filas:fAsist},
+    {titulo:'📦 Pedidos del dia — '+titulo,        filas:fPed}
+  ], 'MasterPizza_Dia_'+k);
+  snack('📥 Reporte diario descargado!','ok');
 }
 
+/* ═══════════════════════════════════════════
+   EXPORT SEMANAL
+═══════════════════════════════════════════ */
+function exportSemXLS(){
+  var f = semFechas(semOffset);
+  var dd = f.map(function(x){ return getDiaData(iso(x)); });
+  var dc = ['Lun','Mar','Mie','Jue','Vie'];
+  var titulo = 'Semana '+fc(f[0])+' al '+fc(f[4])+' / '+f[0].getFullYear();
+
+  // PRODUCCION POR PERSONA
+  var fPers = [['Persona','Rol',dc[0]+' '+fc(f[0]),dc[1]+' '+fc(f[1]),dc[2]+' '+fc(f[2]),dc[3]+' '+fc(f[3]),dc[4]+' '+fc(f[4]),'TOTAL SEMANA']];
+  var tDias = [0,0,0,0,0]; var totSem = 0;
+  PERSONAS.forEach(function(pers){
+    var row = [pers.nom, pers.rol==='encargada'?'Encargada':'Operario'];
+    var rowTot = 0;
+    dd.forEach(function(d,i){
+      var v = prodPersonaDia(d, pers.id);
+      row.push(v); tDias[i]+=v; rowTot+=v;
+    });
+    row.push(rowTot); totSem+=rowTot;
+    fPers.push(row);
+  });
+  fPers.push(['TOTAL DIA','',tDias[0],tDias[1],tDias[2],tDias[3],tDias[4],totSem]);
+
+  // PRODUCCION POR TURNO
+  var fTurno = [['Turno',dc[0]+' '+fc(f[0]),dc[1]+' '+fc(f[1]),dc[2]+' '+fc(f[2]),dc[3]+' '+fc(f[3]),dc[4]+' '+fc(f[4]),'TOTAL']];
+  var colStylesTurno = ['','cab-M','cab-MD','cab-T','','',''];
+  TURNOS.forEach(function(t){
+    var row = [t.ico+' '+t.nom]; var rt=0;
+    dd.forEach(function(d){ var v=prodTurnoDia(d,t.id); row.push(v); rt+=v; });
+    row.push(rt); fTurno.push(row);
+  });
+
+  // ASISTENCIA
+  var fAsist = [['Persona','Rol',dc[0]+' '+fc(f[0]),dc[1]+' '+fc(f[1]),dc[2]+' '+fc(f[2]),dc[3]+' '+fc(f[3]),dc[4]+' '+fc(f[4]),'Dias']];
+  PERSONAS.forEach(function(pers){
+    var row = [pers.nom, pers.rol==='encargada'?'Encargada':'Operario'];
+    var cnt = 0;
+    dd.forEach(function(d){
+      var presente = estuvoPresente(d, pers);
+      row.push(presente?'P':'A'); if(presente) cnt++;
+    });
+    row.push(cnt); fAsist.push(row);
+  });
+
+  // PEDIDOS
+  var fPed = [['Fecha','Tipo','Cliente','Cant.','Asignacion']];
+  var totPedSem = 0;
+  f.forEach(function(fecha){
+    var peds = getDiaData(iso(fecha)).pedidos || [];
+    peds.forEach(function(p){
+      var t = TIPOS_PED[p.tipo]||TIPOS_PED.L;
+      fPed.push([fl(fecha), t.ico+' '+t.nom, p.cliente, p.cant, p.nota||'']);
+      totPedSem += parseInt(p.cant)||0;
+    });
+  });
+  if(fPed.length===1){ fPed.push(['Sin pedidos esta semana','','','','']); }
+  else { fPed.push(['TOTAL PEDIDOS SEMANA','','',totPedSem,'']); }
+
+  makeXLS([
+    {titulo:'MasterPizza — '+titulo, filas:fPers},
+    {titulo:'Produccion por turno', filas:fTurno, colStyles:colStylesTurno},
+    {titulo:'Asistencia semanal',   filas:fAsist},
+    {titulo:'Pedidos de la semana', filas:fPed}
+  ], 'MasterPizza_Semana_'+iso(f[0])+'_'+iso(f[4]));
+  snack('📥 Excel semanal descargado!','ok');
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT MENSUAL
+═══════════════════════════════════════════ */
 function exportMesXLS(){
-  const mes=parseInt($('mes-sel').value); const anio=parseInt($('anio-sel').value);
-  const data=getLocal();
-  const fm=Object.keys(data).filter(k=>{ const d=new Date(k+'T00:00:00'); return d.getFullYear()===anio&&d.getMonth()===mes; }).sort();
-  const tp={}; PERSONAS.forEach(p=>tp[p.id]=0);
-  const cab=['Fecha','Día',...PERSONAS.map(p=>p.nom),'Total']; const filas=[cab];
-  fm.forEach(f=>{ const d=data[f]; const dt=new Date(f+'T00:00:00'); const row=[fc(dt)+'/'+anio,D_CORTO[dt.getDay()]]; let rt=0;
-    PERSONAS.forEach(p=>{ let vd=0; TURNOS.forEach(t=>{ vd+=(parseFloat(d.turnos?.[t.id]?.produccion?.[p.id])||0); }); row.push(vd); tp[p.id]+=vd; rt+=vd; }); row.push(rt); filas.push(row); });
-  const tot=Object.values(tp).reduce((s,v)=>s+v,0);
-  filas.push(['TOTAL MES','',...PERSONAS.map(p=>tp[p.id]),tot]);
-  const cabR=['Persona','Rol','Total','%']; const filasR=[cabR];
-  PERSONAS.forEach(p=>filasR.push([p.nom,p.rol==='encargada'?'Encargada':'Operario',tp[p.id],tot>0?(tp[p.id]/tot*100).toFixed(1)+'%':'0%']));
-  filasR.push(['TOTAL','',tot,'100%']);
-  // Asistencia mensual
-  const presP={}; PERSONAS.forEach(p=>presP[p.id]=0);
-  fm.forEach(f=>{ const d=data[f]; PERSONAS.forEach(p=>{
-    if(p.rol==='encargada'){
-      // Presente solo si su turno tiene producción ese día
-      const miTurno=TURNOS.find(t=>t.encargada===p.id);
-      if(miTurno){ const prod=d.turnos?.[miTurno.id]?.produccion||{}; if(Object.values(prod).some(v=>(parseFloat(v)||0)>0)) presP[p.id]++; }
-    } else { let estuvo=false; TURNOS.forEach(t=>{ if(d.turnos?.[t.id]?.asistencia?.[p.id]) estuvo=true; }); if(estuvo) presP[p.id]++; }
-  }); });
-  const cabPM=['Persona','Rol','Días pres.','Total días','% asist.']; const filasPM=[cabPM];
-  PERSONAS.forEach(p=>filasPM.push([p.nom,p.rol==='encargada'?'Encargada':'Operario',presP[p.id],fm.length,fm.length>0?(presP[p.id]/fm.length*100).toFixed(0)+'%':'—']));
-  makeXLS([{titulo:'📅 Producción — '+MESES[mes]+' '+anio,filas},{titulo:'📊 Resumen por persona',filas:filasR},{titulo:'📍 Asistencia mensual',filas:filasPM}],'MasterPizza_'+MESES[mes]+'_'+anio);
-  snack('📥 Excel mensual!','ok');
+  var mes  = parseInt($('mes-sel').value);
+  var anio = parseInt($('anio-sel').value);
+  var data = getAllData();
+  var fm = Object.keys(data).filter(function(k){
+    var d = new Date(k+'T00:00:00');
+    return d.getFullYear()===anio && d.getMonth()===mes;
+  }).sort();
+
+  var tituloMes = MESES[mes]+' '+anio;
+
+  // PRODUCCION DIARIA
+  var cabDet = ['Fecha','Dia'].concat(PERSONAS.map(function(p){ return p.nom; })).concat(['Total']);
+  var fDet = [cabDet];
+  var totMesP = {}; PERSONAS.forEach(function(p){ totMesP[p.id]=0; });
+  fm.forEach(function(k){
+    var d = data[k]; var dt = new Date(k+'T00:00:00');
+    var row = [fc(dt)+'/'+anio, D_CORTO[dt.getDay()]];
+    var rt = 0;
+    PERSONAS.forEach(function(pers){
+      var v = prodPersonaDia(d, pers.id);
+      row.push(v); totMesP[pers.id]+=v; rt+=v;
+    });
+    row.push(rt); fDet.push(row);
+  });
+  var totMes = Object.values(totMesP).reduce(function(s,v){return s+v;},0);
+  fDet.push(['TOTAL MES',''].concat(PERSONAS.map(function(p){return totMesP[p.id];})).concat([totMes]));
+
+  // RESUMEN POR PERSONA
+  var fRes = [['Persona','Rol','Total Prepizzas','% del Total']];
+  PERSONAS.forEach(function(pers){
+    var pct = totMes>0 ? (totMesP[pers.id]/totMes*100).toFixed(1)+'%' : '0%';
+    fRes.push([pers.nom, pers.rol==='encargada'?'Encargada':'Operario', totMesP[pers.id], pct]);
+  });
+  fRes.push(['TOTAL','',totMes,'100%']);
+
+  // ASISTENCIA MENSUAL
+  var fAM = [['Persona','Rol','Dias Pres.','Total Dias Mes','% Asistencia']];
+  var presM = {}; PERSONAS.forEach(function(p){ presM[p.id]=0; });
+  fm.forEach(function(k){
+    var d = data[k];
+    PERSONAS.forEach(function(pers){
+      if(estuvoPresente(d, pers)) presM[pers.id]++;
+    });
+  });
+  PERSONAS.forEach(function(pers){
+    var pct = fm.length>0 ? (presM[pers.id]/fm.length*100).toFixed(0)+'%' : '—';
+    fAM.push([pers.nom, pers.rol==='encargada'?'Encargada':'Operario', presM[pers.id], fm.length, pct]);
+  });
+
+  // PEDIDOS DEL MES
+  var fPedM = [['Fecha','Dia','Tipo','Cliente','Cant.','Asignacion']];
+  var totPedMes = 0;
+  fm.forEach(function(k){
+    var d = data[k]; var dt = new Date(k+'T00:00:00');
+    var peds = d.pedidos || [];
+    // Convert Firebase object to array if needed
+    if(!Array.isArray(peds)) peds = Object.values(peds);
+    peds.forEach(function(p){
+      var t = TIPOS_PED[p.tipo]||TIPOS_PED.L;
+      fPedM.push([fc(dt)+'/'+anio, D_CORTO[dt.getDay()], t.ico+' '+t.nom, p.cliente, p.cant, p.nota||'']);
+      totPedMes += parseInt(p.cant)||0;
+    });
+  });
+  if(fPedM.length===1){ fPedM.push(['Sin pedidos este mes','','','','','']); }
+  else { fPedM.push(['TOTAL PEDIDOS MES','','','',totPedMes,'']); }
+
+  makeXLS([
+    {titulo:'Produccion Diaria — '+tituloMes,    filas:fDet},
+    {titulo:'Resumen por persona — '+tituloMes,  filas:fRes},
+    {titulo:'Asistencia mensual — '+tituloMes,   filas:fAM},
+    {titulo:'Pedidos del mes — '+tituloMes,      filas:fPedM}
+  ], 'MasterPizza_'+MESES[mes]+'_'+anio);
+  snack('📥 Excel mensual descargado!','ok');
 }
 
 function exportTodoXLS(){
-  const data=getLocal(); const fechas=Object.keys(data).sort();
-  if(!fechas.length){ snack('⚠️ Sin datos','warn'); return; }
-  const cab=['Fecha','Día',...PERSONAS.map(p=>p.nom),'Total']; const filas=[cab];
-  const tp={}; PERSONAS.forEach(p=>tp[p.id]=0); let tg=0;
-  fechas.forEach(f=>{ const d=data[f]; const dt=new Date(f+'T00:00:00'); const row=[fl(dt),D_CORTO[dt.getDay()]]; let rt=0;
-    PERSONAS.forEach(p=>{ let vd=0; TURNOS.forEach(t=>{ vd+=(parseFloat(d.turnos?.[t.id]?.produccion?.[p.id])||0); }); row.push(vd); tp[p.id]+=vd; rt+=vd; }); row.push(rt); tg+=rt; filas.push(row); });
-  filas.push(['TOTAL HISTORIAL','',...PERSONAS.map(p=>tp[p.id]),tg]);
-  makeXLS([{titulo:'📊 Historial Completo',filas}],'MasterPizza_Historial_Completo');
+  var data = getAllData(); var fechas = Object.keys(data).sort();
+  if(!fechas.length){ snack('Sin datos guardados','warn'); return; }
+  var cab = ['Fecha','Dia'].concat(PERSONAS.map(function(p){return p.nom;})).concat(['Total']);
+  var filas = [cab];
+  var tp = {}; PERSONAS.forEach(function(p){tp[p.id]=0;}); var tg=0;
+  fechas.forEach(function(k){
+    var d=data[k]; var dt=new Date(k+'T00:00:00'); var row=[fl(dt),D_CORTO[dt.getDay()]]; var rt=0;
+    PERSONAS.forEach(function(pers){
+      var v=prodPersonaDia(d,pers.id); row.push(v); tp[pers.id]+=v; rt+=v;
+    });
+    row.push(rt); tg+=rt; filas.push(row);
+  });
+  filas.push(['TOTAL HISTORIAL',''].concat(PERSONAS.map(function(p){return tp[p.id];})).concat([tg]));
+  makeXLS([{titulo:'Historial Completo de Produccion', filas:filas}],'MasterPizza_Historial_Completo');
   snack('📊 Historial descargado!','ok');
 }
 
@@ -1140,4 +1392,3 @@ function hideLoad(){ $('loading').classList.remove('on'); }
 </script>
 </body>
 </html>
-

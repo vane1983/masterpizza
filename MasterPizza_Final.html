@@ -445,13 +445,30 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
       </div>
     </div>
 
-    <!-- Resumen del día -->
-    <div class="sec-lbl">📊 Resumen total del día</div>
+    <!-- Resumen y cierre del día -->
+    <div class="sec-lbl">📊 Estado del día</div>
+
+    <!-- Cards de turno con estado guardado/pendiente -->
     <div class="dia-resumen" id="dia-resumen"></div>
     <div class="pill-total" id="dia-total-pill"></div>
 
-    <div style="margin-top:4px">
-      <button class="btn btn-B" onclick="exportDiaXLS()" style="margin-bottom:0">📥 Descargar reporte del día (Excel)</button>
+    <!-- SECCIÓN CIERRE DE DÍA -->
+    <div id="cierre-dia-wrap">
+      <div style="background:linear-gradient(135deg,#1F2937,#374151);border-radius:16px;padding:16px;margin-bottom:12px">
+        <div style="color:white;font-size:.88rem;font-weight:900;margin-bottom:10px">📋 Estado de turnos del día</div>
+        <div id="estado-turnos" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+        <button class="btn btn-G" id="btn-cerrar-dia" onclick="cerrarDia()" style="margin-bottom:0;opacity:.5" disabled>
+          ✅ Cerrar día y descargar reporte
+        </button>
+      </div>
+
+      <!-- DESCARGA RÁPIDA -->
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">📥 Descargar reportes</div>
+        <button class="btn btn-B" onclick="exportDiaXLS()" style="margin-bottom:9px">📋 Reporte de hoy (Excel)</button>
+        <button class="btn btn-B" onclick="exportDiaAnteriorXLS()" style="margin-bottom:9px;background:linear-gradient(135deg,#374151,#4B5563)">📋 Reporte de ayer (Excel)</button>
+        <button class="btn btn-MO" onclick="exportMesRapido()" style="margin-bottom:0">📅 Reporte del mes (Excel)</button>
+      </div>
     </div>
 
     <div style="height:80px"></div>
@@ -551,7 +568,7 @@ body{font-family:'Nunito',sans-serif;color:var(--TX)}
 
 </div><!-- /main -->
 
-<button class="fab" id="fab" onclick="guardarTurno()" style="display:none;font-size:1rem">💾 GUARDAR TURNO</button>
+<button class="fab" id="fab" onclick="guardarTurno()" style="display:none;font-size:1rem">💾 Guardar Turno</button>
 
 <nav class="bnav" id="bnav" style="display:none">
   <button class="bnav-btn on" id="bn-dia"    onclick="irA('dia')">   <span class="bnav-ico">📋</span><span class="bnav-txt">Día</span></button>
@@ -751,25 +768,32 @@ function renderTurnoTabs(dd){
   TURNOS.forEach(function(t){
     var tData = (dd.turnos && dd.turnos[t.id]) || {};
     var asist = tData.asistencia || {};
-    var totT = Object.values(tData.produccion||{}).reduce(function(s,v){return s+(parseFloat(v)||0);},0);
+    var prod  = tData.produccion || {};
+    var totT = Object.values(prod).reduce(function(s,v){return s+(parseFloat(v)||0);},0);
     var nPresentes = Object.values(asist).filter(function(v){return v===true;}).length;
+    var guardado = totT > 0 || nPresentes > 0;
     var btn=document.createElement('div');
     btn.className='turno-tab'+(turnoActivo===t.id?' activo on-'+t.cls:'');
-    var subInfo = nPresentes>0 ? nPresentes+(nPresentes===1?' persona':' personas') : 'sin cargar';
-    btn.innerHTML='<span class="tt-ico">'+t.ico+'</span>'
+    var subInfo = nPresentes>0 ? nPresentes+(nPresentes===1?' persona':' personas') : 'tocar para cargar';
+    btn.innerHTML='<span class="tt-ico">'+t.ico+(guardado?'':'')+'</span>'
       +'<div class="tt-nom">'+t.nom+'</div>'
       +'<div class="tt-enc">'+subInfo+'</div>'
-      +'<div class="tt-tot">'+(totT>0?totT+' 🍕':'—')+'</div>';
-    btn.onclick=function(){ turnoActivo=t.id; _renderTurnoContent(iso(diaActual()),dd); renderTurnoTabs(dd); };
+      +'<div class="tt-tot">'+(totT>0?'<span style="color:var(--G);font-weight:900">✅ '+totT+' 🍕</span>':'⏳')+'</div>';
+    btn.onclick=function(){ turnoActivo=t.id; _renderTurnoContent(iso(diaActual()),dd); renderTurnoTabs(dd); actualizarEstadoDia(dd); };
     cont.appendChild(btn);
   });
+  // Update FAB label
+  var turnoActualObj = TURNOS.find(function(t){return t.id===turnoActivo;});
+  var fabEl = $('fab');
+  if(fabEl && turnoActualObj) fabEl.textContent = '💾 Guardar T. '+turnoActualObj.nom;
+  actualizarEstadoDia(dd);
 }
 
 function renderDia(){
   updFechaLabel();
-  const k=iso(diaActual()); const dd=getDia(k);
-  _renderTurnoContent(k,dd); renderTurnoTabs(dd); renderResumenDia(dd);
-  escucharDia(k,fresh=>{ _renderTurnoContent(k,fresh); renderTurnoTabs(fresh); renderResumenDia(fresh); });
+  var k=iso(diaActual()); var dd=getDia(k);
+  _renderTurnoContent(k,dd); renderTurnoTabs(dd); renderResumenDia(dd); actualizarEstadoDia(dd);
+  escucharDia(k,function(fresh){ _renderTurnoContent(k,fresh); renderTurnoTabs(fresh); renderResumenDia(fresh); actualizarEstadoDia(fresh); });
 }
 
 function _renderTurnoContent(k,dd){
@@ -859,20 +883,84 @@ function guardarTurno(){
     var inp=document.getElementById('pv-'+p.id);
     if(inp) dd.turnos[turnoActivo].produccion[p.id]=parseFloat(inp.value)||0;
   });
-  setDia(k,dd); renderResumenDia(dd); renderTurnoTabs(dd);
-  // Marcar pasos como completos
+  setDia(k,dd); renderResumenDia(dd); renderTurnoTabs(dd); actualizarEstadoDia(dd);
   ['paso1','paso2','paso3','paso4'].forEach(function(id){
     var el=$(id); if(el){ el.style.color='#4ade80'; el.style.opacity='1'; }
   });
   var turnoObj=TURNOS.find(function(t){ return t.id===turnoActivo; });
-  snack('✅ Turno '+turnoObj.nom+' guardado!'+(modoSync?' Sincronizado 🔥':''),'ok');
+  snack('✅ Turno '+turnoObj.nom+' guardado!'+(modoSync?' 🔥':''),'ok');
 }
 
 function actualizarResumen(){
-  // Re-render resumen usando datos del cache más inputs actuales
   var k=iso(diaActual());
   var dd=getDia(k);
   renderResumenDia(dd);
+}
+
+function actualizarEstadoDia(dd){
+  var wrap = $('estado-turnos');
+  var btnCerrar = $('btn-cerrar-dia');
+  if(!wrap) return;
+  var algonoCargado = false;
+  var html = '';
+  TURNOS.forEach(function(t){
+    var prod = (dd.turnos && dd.turnos[t.id] && dd.turnos[t.id].produccion) || {};
+    var asist = (dd.turnos && dd.turnos[t.id] && dd.turnos[t.id].asistencia) || {};
+    var totT = Object.values(prod).reduce(function(s,v){return s+(parseFloat(v)||0);},0);
+    var nP = Object.values(asist).filter(function(v){return v===true;}).length;
+    var guardado = totT > 0;
+    if(guardado) algonoCargado = true;
+    html += '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,'+(guardado?'.15':'.06')+');border-radius:10px;padding:9px 12px">'
+      +'<span style="font-size:1.2rem">'+t.ico+'</span>'
+      +'<div style="flex:1">'
+      +'<div style="color:white;font-size:.82rem;font-weight:800">Turno '+t.nom+'</div>'
+      +'<div style="color:rgba(255,255,255,.65);font-size:.7rem">'+(nP>0?nP+' personas · ':'')+(guardado?totT+' prepizzas guardadas':'Sin guardar aún')+'</div>'
+      +'</div>'
+      +'<span style="font-size:1.1rem">'+(guardado?'✅':'⏳')+'</span>'
+      +'</div>';
+  });
+  wrap.innerHTML = html;
+  if(btnCerrar){
+    btnCerrar.disabled = !algonoCargado;
+    btnCerrar.style.opacity = algonoCargado ? '1' : '.4';
+  }
+}
+
+function cerrarDia(){
+  var k = iso(diaActual());
+  var dd = getDia(k);
+  var totDia = 0;
+  TURNOS.forEach(function(t){
+    totDia += Object.values((dd.turnos&&dd.turnos[t.id]&&dd.turnos[t.id].produccion)||{})
+      .reduce(function(s,v){return s+(parseFloat(v)||0);},0);
+  });
+  if(totDia === 0){ snack('⚠️ No hay producción cargada hoy','warn'); return; }
+  exportDiaXLS();
+  snack('✅ Día cerrado — reporte descargado!','ok');
+}
+
+function exportDiaAnteriorXLS(){
+  // Temporalmente cambiamos diaOffset para exportar ayer
+  var originalOffset = diaOffset;
+  diaOffset = diaOffset - 1;
+  exportDiaXLS();
+  diaOffset = originalOffset;
+}
+
+function exportMesRapido(){
+  // Exportar el mes del día que está viendo
+  var d = diaActual();
+  // Temporarily set the mes/anio selectors if they exist
+  var mesSel = $('mes-sel'); var anioSel = $('anio-sel');
+  if(mesSel && anioSel){
+    mesSel.value = d.getMonth();
+    anioSel.value = d.getFullYear();
+    exportMesXLS();
+  } else {
+    // Navigate to mes view and export
+    irA('mes');
+    setTimeout(function(){ exportMesXLS(); }, 300);
+  }
 }
 
 function cambDia(delta){
@@ -1505,3 +1593,4 @@ function hideLoad(){ $('loading').classList.remove('on'); }
 </script>
 </body>
 </html>
+

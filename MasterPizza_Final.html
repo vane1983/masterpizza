@@ -1223,9 +1223,13 @@ function compartirSemWA(){
   const dc2=['Lunes','Martes','Miércoles','Jueves','Viernes'];
   dd.forEach((d,i)=>{
     const presentes=[];
-    TURNOS.forEach(t=>{ const enc=PERSONAS.find(p=>p.id===TURNOS.find(tt=>tt.id===t.id).encargada);
-      presentes.push(enc.nom);
-      OPERARIOS.forEach(op=>{ if(d.turnos?.[t.id]?.asistencia?.[op.id]) presentes.push(op.nom); }); });
+    TURNOS.forEach(function(t){
+      PERSONAS.forEach(function(p){
+        if(d.turnos && d.turnos[t.id] && d.turnos[t.id].asistencia && d.turnos[t.id].asistencia[p.id]===true){
+          presentes.push(p.nom);
+        }
+      });
+    });
     txt+=`• ${dc2[i]}: ${[...new Set(presentes)].join(', ')||'—'}\n`;
   });
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
@@ -1391,17 +1395,22 @@ function exportDiaXLS(){
   // PRODUCCION POR TURNO Y PERSONA
   var fProd = [['Turno','Persona','Rol','Prepizzas']];
   TURNOS.forEach(function(turno){
-    var prod = dd.turnos?.[turno.id]?.produccion || {};
-    var asist = dd.turnos?.[turno.id]?.asistencia || {};
-    var enc = PERSONAS.find(function(p){ return p.id === turno.encargada; });
-    // Encargada del turno
-    var vEnc = parseFloat(prod[enc.id]) || 0;
-    fProd.push([turno.ico+' '+turno.nom, enc.nom, 'Encargada', vEnc]);
-    // Personas con asistencia en este turno
-    PERSONAS.filter(function(p){ return p.id !== turno.encargada && asist[p.id] === true; })
-      .forEach(function(p){
-        fProd.push(['', p.nom, p.rol==='encargada'?'Encargada':'Operario', parseFloat(prod[p.id])||0]);
-      });
+    var prod = (dd.turnos && dd.turnos[turno.id] && dd.turnos[turno.id].produccion) || {};
+    var asist = (dd.turnos && dd.turnos[turno.id] && dd.turnos[turno.id].asistencia) || {};
+    // Todos los que estuvieron presentes en este turno (asistencia marcada)
+    var presentesTurno = PERSONAS.filter(function(p){ return asist[p.id]===true; });
+    if(presentesTurno.length === 0 && Object.keys(prod).length === 0) return; // turno sin datos
+    presentesTurno.forEach(function(p){
+      fProd.push([turno.ico+' '+turno.nom, p.nom, p.rol==='encargada'?'Encargada':'Operario', parseFloat(prod[p.id])||0]);
+    });
+    // También incluir quien tiene producción aunque no tenga asistencia marcada (ej: cargado por encargada)
+    Object.keys(prod).forEach(function(pid){
+      var yaIncluido = presentesTurno.some(function(p){return p.id===pid;});
+      if(!yaIncluido){
+        var persona = PERSONAS.find(function(p){return p.id===pid;});
+        if(persona) fProd.push([turno.ico+' '+turno.nom, persona.nom, persona.rol==='encargada'?'Encargada':'Operario', parseFloat(prod[pid])||0]);
+      }
+    });
   });
   // Total del dia
   var totDia = PERSONAS.reduce(function(s,p){ return s + prodPersonaDia(dd,p.id); }, 0);
@@ -1410,12 +1419,11 @@ function exportDiaXLS(){
   // ASISTENCIA POR TURNO
   var fAsist = [['Turno','Persona','Rol','Presente']];
   TURNOS.forEach(function(turno){
-    var asist = dd.turnos?.[turno.id]?.asistencia || {};
+    var asist = (dd.turnos && dd.turnos[turno.id] && dd.turnos[turno.id].asistencia) || {};
     PERSONAS.forEach(function(p){
-      var esFijoDeTurno = p.id === turno.encargada;
-      var presente = esFijoDeTurno ? (prodPersonaDia(dd,p.id)>0) : (asist[p.id]===true);
-      if(presente || esFijoDeTurno){
-        fAsist.push([turno.ico+' '+turno.nom, p.nom, p.rol==='encargada'?'Encargada':'Operario', presente?'P':'A']);
+      var presente = asist[p.id]===true;
+      if(presente){
+        fAsist.push([turno.ico+' '+turno.nom, p.nom, p.rol==='encargada'?'Encargada':'Operario', 'P']);
       }
     });
   });
@@ -1664,4 +1672,5 @@ function hideLoad(){ $('loading').classList.remove('on'); }
 </script>
 </body>
 </html>
+
 
